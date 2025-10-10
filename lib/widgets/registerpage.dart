@@ -1,13 +1,23 @@
+// register_page.dart
 import 'package:flutter/material.dart';
-import 'package:transportes_locales/widgets/registerpage.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -15,15 +25,15 @@ class LoginPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 60),
-
-                // Imagen de encabezado
+                const SizedBox(height: 40),
+                
+                // Imagen/logo
                 Container(
                   height: 120,
                   width: 120,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(60),
-                    color: const Color.fromARGB(255, 245, 245, 245),
+                    color: Colors.grey[100],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
@@ -33,77 +43,110 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
+                
                 const SizedBox(height: 40),
-
+                
                 // Título
                 const Text(
-                  "Iniciar Sesión",
+                  "Crear Cuenta",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
                 ),
-
+                
                 const SizedBox(height: 8),
-
+                
                 // Subtítulo
                 const Text(
-                  "Ingresa a tu cuenta",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  "Regístrate para comenzar",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
                 ),
-
+                
                 const SizedBox(height: 40),
-
+                
+                // Campo de nombre completo
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const TextField(
+                    decoration: InputDecoration(
+                      hintText: "Nombre completo",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
                 // Campo de correo
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: TextField(
+                  child: const TextField(
                     decoration: InputDecoration(
                       hintText: "Correo Electrónico",
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
                 ),
-
+                
                 const SizedBox(height: 20),
-
+                
                 // Campo de contraseña
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: TextField(
+                  child: const TextField(
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: "Contraseña",
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                // Botón de inicio de sesión
+                
+                const SizedBox(height: 20),
+                
+                // Campo de confirmar contraseña
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: "Confirmar contraseña",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // Botón de registro
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Lógica de registro
+                      Navigator.pop(context); // Regresa al login después de registrar
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black87,
                       foregroundColor: Colors.white,
@@ -114,42 +157,13 @@ class LoginPage extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: const Text(
-                      "Iniciar sesión",
+                      "Registrarse",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Enlace de registro
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "¿No tienes una cuenta?",
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder:(context) => const RegisterPage()),
-                          );
-                      },
-                      child: const Text(
-                        "Regístrate",
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
