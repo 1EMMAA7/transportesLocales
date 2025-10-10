@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transportes_locales/widgets/mapspage.dart';
 import 'package:transportes_locales/widgets/registerpage.dart';
 
 class LoginPage extends StatelessWidget {
@@ -103,7 +104,9 @@ class LoginPage extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _loginUser(context); // Llama al método de login
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black87,
                       foregroundColor: Colors.white,
@@ -158,4 +161,32 @@ class LoginPage extends StatelessWidget {
       ),
     );
   }
+
+  // Agrega este método en tu clase LoginPage:
+  void _loginUser(BuildContext context) {
+  // Muestra mensaje flotante de bienvenida
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      backgroundColor: Colors.black87,
+      content: const Text(
+        '¡Bienvenido!',
+        style: TextStyle(color: Colors.white),
+      ),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    ),
+  );
+
+  // Navega a MapsPage después de un breve delay
+    Future.delayed(const Duration(milliseconds: 1500), () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const MapsPage()),
+    );
+  });
+}
+
 }
