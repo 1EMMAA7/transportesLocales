@@ -127,17 +127,6 @@ class MapsPage extends StatelessWidget {
             },
           ),
           
-          // Opción 2: Filtrar
-          _buildDrawerItem(
-            icon: Icons.filter_list,
-            title: 'Filtrar',
-            onTap: () {
-              Navigator.pop(context);
-              // Muestra opciones de filtro
-              _showFilterOptions(context);
-            },
-          ),
-          
           // Divisor
           const Divider(color: Colors.grey, height: 1),
           
@@ -184,95 +173,6 @@ class MapsPage extends StatelessWidget {
         style: const TextStyle(
           color: Colors.black87,
           fontSize: 16,
-        ),
-      ),
-      onTap: onTap,
-    );
-  }
-
-  // Método para mostrar opciones de filtro
-  void _showFilterOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Filtrar por',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Opción de filtro: Rutas
-              _buildFilterOption(
-                title: 'Rutas',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showComingSoonMessage(context, 'Filtro: Rutas');
-                },
-              ),
-              
-              // Opción de filtro: Paradas
-              _buildFilterOption(
-                title: 'Paradas',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showComingSoonMessage(context, 'Filtro: Paradas');
-                },
-              ),
-              
-              // Opción de filtro: Horarios
-              _buildFilterOption(
-                title: 'Horarios',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showComingSoonMessage(context, 'Filtro: Horarios');
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // Widget para opciones de filtro
-  Widget _buildFilterOption({
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        height: 40,
-        width: 40,
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          Icons.check_box_outline_blank,
-          color: Colors.grey[600],
-          size: 20,
-        ),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.black87,
         ),
       ),
       onTap: onTap,
