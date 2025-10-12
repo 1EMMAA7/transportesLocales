@@ -29,7 +29,7 @@ class LoginPage extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
                     child: Image.network(
-                      "https://img3.pillowfort.social/posts/44a1658f1e2f47597c2a.gif",
+                      "https://cdn.pixabay.com/photo/2024/01/08/10/18/ai-generated-8495199_1280.png",
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -57,7 +57,7 @@ class LoginPage extends StatelessWidget {
 
                 const SizedBox(height: 40),
 
-                // Campo de correo
+                // Campo correo
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
@@ -78,7 +78,7 @@ class LoginPage extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Campo de contraseña
+                // Campo contraseña
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
@@ -128,7 +128,7 @@ class LoginPage extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Enlace de registro
+                // Enlace para el registro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -162,9 +162,8 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  // Agrega este método en tu clase LoginPage:
   void _loginUser(BuildContext context) {
-  // Muestra mensaje flotante de bienvenida
+  // Mensaje flotante de bienvenida
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       backgroundColor: Colors.black87,
@@ -180,7 +179,7 @@ class LoginPage extends StatelessWidget {
     ),
   );
 
-  // Navega a MapsPage después de un breve delay
+  // Breve delay despues de un login exitoso
     Future.delayed(const Duration(milliseconds: 1500), () {
     Navigator.pushReplacement(
       context,

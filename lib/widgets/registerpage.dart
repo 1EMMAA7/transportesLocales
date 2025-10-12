@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/services/auth_service.dart';
-// Importa el servicio
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,7 +9,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // Controladores para los campos de texto
+  // Controladores para los TextField
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
+  //La IP debe ser de la misma red
   static const String baseUrl = 'http://192.168.39.106:3000/api/auth';
 
   static Future<Map<String, dynamic>> registerUser({
