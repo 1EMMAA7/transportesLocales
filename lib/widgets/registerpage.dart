@@ -1,71 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/services/auth_service.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class RegisterPage extends StatefulWidget {  // Widget con estado mutable
+  const RegisterPage({super.key});     // Constructor con clave opcional
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<RegisterPage> createState() => _RegisterPageState();  // Crea el estado
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // Controladores para los TextField
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  final TextEditingController _nameController = TextEditingController(); // Controladores para los TextField
+  final TextEditingController _emailController = TextEditingController(); // Controladores para los TextField
+  final TextEditingController _passwordController = TextEditingController(); // Controladores para los TextField
+  final TextEditingController _confirmPasswordController = TextEditingController(); // Controladores para los TextField
 
-  bool _isLoading = false;
+  bool _isLoading = false;  // Controla si está cargando
 
-  // Función para registrar usuario
-  Future<void> _registerUser() async {
-    // Validaciones básicas
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+  
+  Future<void> _registerUser() async { // Función para registrar usuario
+    
+    if (_nameController.text.isEmpty ||  // Validaciones básicas
+        _emailController.text.isEmpty || // Validaciones básicas
+        _passwordController.text.isEmpty) { // Validaciones básicas
       _showMessage('Por favor completa todos los campos');
       return;
     }
 
-    if (_passwordController.text != _confirmPasswordController.text) {
+    if (_passwordController.text != _confirmPasswordController.text) { // Valida que las contraseñas coincidan
       _showMessage('Las contraseñas no coinciden');
       return;
     }
 
-    if (_passwordController.text.length < 6) {
+    if (_passwordController.text.length < 6) { // Valida longitud mínima de contraseña
       _showMessage('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
     setState(() {
-      _isLoading = true;
+      _isLoading = true; // Activa el estado de carga
     });
 
     try {
-      // Llamar al servicio de registro
-      final result = await AuthService.registerUser(
+      
+      final result = await AuthService.registerUser( // Llamar al servicio de registro
         name: _nameController.text,
         email: _emailController.text,
         password: _passwordController.text,
       );
 
       setState(() {
-        _isLoading = false;
+        _isLoading = false; // Desactiva el estado de carga
       });
 
-      if (result['success'] == true) {
+      if (result['success'] == true) { // Registro exitoso
         // Registro exitoso
         _showSuccessMessage('¡Registro exitoso!');
         
-        // Esperar un poco y regresar al login
-        await Future.delayed(const Duration(seconds: 2));
         
-        if (context.mounted) {
-          Navigator.pop(context);
+        await Future.delayed(const Duration(seconds: 2)); // Esperar un poco y regresar al login
+        
+        if (context.mounted) {  // Verifica que el widget aún esté en el árbol
+          Navigator.pop(context); // Regresa a la pantalla anterior
         }
       } else {
-        // Error en el registro
-        _showMessage(result['message'] ?? 'Error en el registro');
+        
+        _showMessage(result['message'] ?? 'Error en el registro');  // Error en el registro
       }
     } catch (error) {
       setState(() {
@@ -75,7 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  void _showMessage(String message) {
+  void _showMessage(String message) { // Muestra mensaje de error
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -84,7 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _showSuccessMessage(String message) {
+  void _showSuccessMessage(String message) { // Muestra mensaje de éxito
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -110,7 +110,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: SingleChildScrollView( // Permite scroll si el contenido es grande
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
@@ -118,8 +118,8 @@ class _RegisterPageState extends State<RegisterPage> {
               children: [
                 const SizedBox(height: 40),
                 
-                // Imagen/logo
-                Container(
+                
+                Container(  // Imagen/logo
                   height: 120,
                   width: 120,
                   decoration: BoxDecoration(
@@ -137,8 +137,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 40),
                 
-                // Título
-                const Text(
+                
+                const Text( // Título
                   "Crear Cuenta",
                   style: TextStyle(
                     fontSize: 24,
@@ -149,8 +149,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 8),
                 
-                // Subtítulo
-                const Text(
+                
+                const Text( // Subtítulo
                   "Regístrate para comenzar",
                   style: TextStyle(
                     fontSize: 16,
@@ -160,8 +160,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 40),
                 
-                // Campo de nombre completo
-                Container(
+                
+                Container( // Campo de nombre completo
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
@@ -178,8 +178,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 20),
                 
-                // Campo de correo
-                Container(
+                
+                Container( // Campo de correo
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
@@ -197,8 +197,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 20),
                 
-                // Campo de contraseña
-                Container(
+                
+                Container(  // Campo de contraseña
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
@@ -216,8 +216,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 20),
                 
-                // Campo de confirmar contraseña
-                Container(
+                
+                Container(  // Campo de confirmar contraseña
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
@@ -235,8 +235,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 
                 const SizedBox(height: 30),
                 
-                // Botón de registro
-                SizedBox(
+                
+                SizedBox( // Botón de registro
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _registerUser,
@@ -276,8 +276,8 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   @override
-  void dispose() {
-    _nameController.dispose();
+  void dispose() { // Limpia los controladores para evitar memory leaks
+    _nameController.dispose();  
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
