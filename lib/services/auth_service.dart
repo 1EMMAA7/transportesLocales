@@ -5,7 +5,7 @@ class AuthService {
   //Clase para manejar la autentifcacion
 
   static const String baseUrl =
-      'http://192.168.1.75:3000/api/auth'; //La IP red local
+      'http://192.168.1.81:3000/api/auth'; //La IP red local
 
   static Future<Map<String, dynamic>> registerUser({
     // Método estático para registrar usuario

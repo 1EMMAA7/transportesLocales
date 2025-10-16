@@ -1,9 +1,11 @@
-// maps_page.dart
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/widgets/loginpage.dart';
+import 'package:transportes_locales/models/user_model.dart';
 
 class MapsPage extends StatelessWidget {
-  const MapsPage({super.key});
+  final User user; // Recibe el usuario como parámetro
+
+  const MapsPage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,6 @@ class MapsPage extends StatelessWidget {
           ),
         ),
       ),
-      // Drawer es el menú lateral
       drawer: _buildDrawer(context),
       body: const Center(
         child: Column(
@@ -61,14 +62,12 @@ class MapsPage extends StatelessWidget {
     );
   }
 
-  // Método para construir el menú lateral
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.white,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // Encabezado del drawer
           DrawerHeader(
             decoration: BoxDecoration(
               color: Colors.grey[50],
@@ -93,19 +92,19 @@ class MapsPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Nombre de usuario
-                const Text(
-                  'Usuario',
-                  style: TextStyle(
+                // Nombre de usuario REAL
+                Text(
+                  user.name, // ← Nombre real del usuario
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Email
+                // Email REAL
                 Text(
-                  'usuario@ejemplo.com',
+                  user.email, // ← Email real del usuario
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -115,22 +114,18 @@ class MapsPage extends StatelessWidget {
             ),
           ),
           
-          // Opción 1: Favoritos
+          // Resto del menú lateral...
           _buildDrawerItem(
             icon: Icons.favorite_border,
             title: 'Favoritos',
             onTap: () {
-              // Cierra el drawer primero
               Navigator.pop(context);
-              // Aquí puedes navegar a la pantalla de Favoritos
               _showComingSoonMessage(context, 'Favoritos');
             },
           ),
           
-          // Divisor
           const Divider(color: Colors.grey, height: 1),
           
-          // Opción 3: Mi Cuenta
           _buildDrawerItem(
             icon: Icons.person_outline,
             title: 'Mi Cuenta',
@@ -140,14 +135,11 @@ class MapsPage extends StatelessWidget {
             },
           ),
           
-          // Opción 4: Cerrar Sesión
           _buildDrawerItem(
             icon: Icons.logout,
             title: 'Cerrar Sesión',
             onTap: () {
-              // Cierra el drawer
               Navigator.pop(context);
-              // Muestra diálogo de confirmación
               _showLogoutDialog(context);
             },
           ),
@@ -156,7 +148,6 @@ class MapsPage extends StatelessWidget {
     );
   }
 
-  // Widget reutilizable para items del menú
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
@@ -179,7 +170,6 @@ class MapsPage extends StatelessWidget {
     );
   }
 
-  // Diálogo para cerrar sesión
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -206,14 +196,12 @@ class MapsPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Cierra el diálogo
-              // Navega al LoginPage reemplazando toda la pila de navegación
+              Navigator.pop(context);
               Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginPage()),
-              (route) => false, // Esto limpia toda la pila de navegación
-            ); // Regresa al login
-              // Aquí también puedes limpiar datos de sesión
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
+              );
             },
             child: const Text(
               'Cerrar Sesión',
@@ -225,7 +213,6 @@ class MapsPage extends StatelessWidget {
     );
   }
 
-  // Método para mostrar mensajes de "próximamente"
   void _showComingSoonMessage(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

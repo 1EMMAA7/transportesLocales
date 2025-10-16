@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 import 'package:transportes_locales/widgets/registerpage.dart';
 import 'package:transportes_locales/services/auth_service.dart';
+import 'package:transportes_locales/models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
-  // Cambié a StatefulWidget
   const LoginPage({super.key});
 
   @override
@@ -12,11 +12,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controladores para los campos de texto
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _isLoading = false; // Para controlar el estado de carga
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
-                    controller: _emailController, // Agregado controller
+                    controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       hintText: "Correo Electrónico",
@@ -93,14 +92,13 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 20),
 
-                
-                Container( // Campo contraseña
+                Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
-                    controller: _passwordController, // Agregado controller
+                    controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: "Contraseña",
@@ -116,15 +114,13 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 24),
 
-                
-                SizedBox( // Botón de inicio de sesión
+                SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isLoading
                         ? null
                         : () {
-                            
-                            _loginUser(context);  // Deshabilitar cuando carga
+                            _loginUser(context);
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black87,
@@ -158,8 +154,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 24),
 
-                
-                Row( // Enlace para el registro
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
@@ -169,9 +164,8 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: _isLoading
-                          ? null // Deshabilitar cuando carga
+                          ? null
                           : () {
-                              
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -198,8 +192,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _loginUser(BuildContext context) async {
-    
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) { // Validaciones básicas
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('Por favor completa todos los campos', Colors.red);
       return;
     }
@@ -209,8 +202,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      
-      final result = await AuthService.loginUser( // Llamar al servicio de login
+      final result = await AuthService.loginUser(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -220,22 +212,25 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (result['success'] == true) {
+        // Crear objeto User con los datos de la API
+        final user = User.fromJson(result);
         
-        _showMessage('¡Bienvenido!', Colors.black87); // Login exitoso
+        _showMessage('¡Bienvenido ${user.name}!', Colors.green);
 
-        
-        await Future.delayed(const Duration(milliseconds: 1500)); // Navegar a MapsPage después del delay
+        // Navegar a MapsPage pasando el usuario
+        await Future.delayed(const Duration(milliseconds: 1500));
 
         if (context.mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const MapsPage()),
+            MaterialPageRoute(
+              builder: (context) => MapsPage(user: user),
+            ),
           );
         }
       } else {
-        
         _showMessage(
-          result['message'] ?? 'Error en el inicio de sesión',  // Error en el login
+          result['message'] ?? 'Error en el inicio de sesión',
           Colors.red,
         );
       }
@@ -261,8 +256,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    
-    _emailController.dispose();  // Limpiar los controladores
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
