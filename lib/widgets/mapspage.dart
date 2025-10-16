@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/widgets/loginpage.dart';
 import 'package:transportes_locales/models/user_model.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class MapsPage extends StatelessWidget {
   final User user; // Recibe el usuario como parámetro
@@ -31,34 +32,7 @@ class MapsPage extends StatelessWidget {
         ),
       ),
       drawer: _buildDrawer(context),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.map_outlined,
-              size: 80,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Pantalla de Mapa',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black54,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Aquí irá tu mapa integrado',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: const MapWebView(),
     );
   }
 
@@ -225,3 +199,29 @@ class MapsPage extends StatelessWidget {
     );
   }
 }
+
+// CLASE ACTUALIZADA - Versión webview_flutter 4.x
+class MapWebView extends StatefulWidget {
+  const MapWebView({super.key});
+
+  @override
+  State<MapWebView> createState() => _MapWebViewState();
+}
+
+class _MapWebViewState extends State<MapWebView> {
+  late final WebViewController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse('https://umap.openstreetmap.fr/es/map/trasnportes-locales-huajauapan_1298643#18/17.81090/-97.77553')); // Cambia por tu URL
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WebViewWidget(controller: controller);
+  }
+}
+
