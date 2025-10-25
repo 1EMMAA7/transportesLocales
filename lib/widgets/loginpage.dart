@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 import 'package:transportes_locales/widgets/registerpage.dart';
-import 'package:transportes_locales/services/auth_service.dart';
-import 'package:transportes_locales/models/user_model.dart';
+import 'package:transportes_locales/services/authservice.dart';
+import 'package:transportes_locales/models/usermodel.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -213,9 +213,10 @@ class _LoginPageState extends State<LoginPage> {
 
       if (result['success'] == true) {
         // Crear objeto User con los datos de la API
-        final user = User.fromJson(result);
+        // Ajusta según cómo esté estructurada tu respuesta del servidor
+        final user = User.fromJson(result['user'] ?? result);
         
-        _showMessage('¡Bienvenido ${user.name}!', Colors.green);
+        _showMessage('¡Bienvenido ${user.fullName}!', Colors.green);
 
         // Navegar a MapsPage pasando el usuario
         await Future.delayed(const Duration(milliseconds: 1500));

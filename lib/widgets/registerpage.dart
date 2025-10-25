@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:transportes_locales/services/auth_service.dart';
-import 'package:transportes_locales/models/user_model.dart';
+import 'package:transportes_locales/services/authservice.dart';
+import 'package:transportes_locales/models/usermodel.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -11,18 +11,19 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController(); // Cambiado de _nameController
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController(); // Nuevo controlador para teléfono
 
   bool _isLoading = false;
 
   Future<void> _registerUser() async {
-    if (_nameController.text.isEmpty ||
+    if (_fullNameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      _showMessage('Por favor completa todos los campos');
+      _showMessage('Por favor completa todos los campos obligatorios');
       return;
     }
 
@@ -42,9 +43,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final result = await AuthService.registerUser(
-        name: _nameController.text,
+        fullName: _fullNameController.text, // Cambiado para usar fullName
         email: _emailController.text,
         password: _passwordController.text,
+        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null, // Teléfono opcional
       );
 
       setState(() {
@@ -53,7 +55,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (result['success'] == true) {
         // Crear objeto User con los datos de la API
-        final user = User.fromJson(result);
+        // Nota: Asegúrate de que tu UserModel pueda manejar la nueva estructura
+        final user = User.fromJson(result['user'] ?? result); // Ajusta según tu UserModel
         
         _showSuccessMessage('¡Registro exitoso!');
 
@@ -167,7 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
-                    controller: _nameController,
+                    controller: _fullNameController, // Cambiado a _fullNameController
                     decoration: const InputDecoration(
                       hintText: "Nombre completo",
                       border: InputBorder.none,
@@ -188,6 +191,24 @@ class _RegisterPageState extends State<RegisterPage> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       hintText: "Correo Electrónico",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextField(
+                    controller: _phoneController, // Nuevo campo para teléfono
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      hintText: "Teléfono (opcional)",
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
@@ -273,10 +294,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _fullNameController.dispose(); // Cambiado a _fullNameController
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose(); // Nuevo dispose para el controlador de teléfono
     super.dispose();
   }
 }

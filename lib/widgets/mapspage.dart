@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/widgets/loginpage.dart';
-import 'package:transportes_locales/models/user_model.dart';
+import 'package:transportes_locales/models/usermodel.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class MapsPage extends StatelessWidget {
@@ -68,7 +68,7 @@ class MapsPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 // Nombre de usuario REAL
                 Text(
-                  user.name, // ← Nombre real del usuario
+                  user.fullName, // ← Nombre real del usuario
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -88,7 +88,7 @@ class MapsPage extends StatelessWidget {
             ),
           ),
           
-          // Resto del menú lateral...
+          
           _buildDrawerItem(
             icon: Icons.favorite_border,
             title: 'Favoritos',
@@ -200,7 +200,6 @@ class MapsPage extends StatelessWidget {
   }
 }
 
-// CLASE ACTUALIZADA - Versión webview_flutter 4.x
 class MapWebView extends StatefulWidget {
   const MapWebView({super.key});
 
@@ -216,7 +215,7 @@ class _MapWebViewState extends State<MapWebView> {
     super.initState();
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://umap.openstreetmap.fr/es/map/trasnportes-locales-huajauapan_1298643#18/17.81090/-97.77553')); // Cambia por tu URL
+      ..loadRequest(Uri.parse('https://umap.openstreetmap.fr/es/map/trasnportes-locales-huajauapan_1298643#18/17.81090/-97.77553')); // URL DEL MAPA
   }
 
   @override

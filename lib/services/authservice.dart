@@ -1,17 +1,18 @@
-import 'dart:convert'; //Libreria para convertir datos JSON
-import 'package:http/http.dart' as http; //Libreria HTTP para hacer peticiones
+import 'dart:convert'; // Libreria para convertir datos JSON
+import 'package:http/http.dart' as http; // Libreria HTTP para hacer peticiones
 
 class AuthService {
-  //Clase para manejar la autentifcacion
+  // Clase para manejar la autenticación
 
   static const String baseUrl =
-      'https://hpj1hbd6-3000.usw3.devtunnels.ms/api/auth'; //La IP red local
+      'https://hpj1hbd6-3000.usw3.devtunnels.ms/api/auth'; // La IP red local
 
   static Future<Map<String, dynamic>> registerUser({
     // Método estático para registrar usuario
-    required String name,
+    required String fullName,
     required String email,
     required String password,
+    String? phone, // Parámetro opcional para el teléfono
   }) async {
     // Método asíncrono
     try {
@@ -25,9 +26,10 @@ class AuthService {
         },
         body: json.encode({
           // Convierte datos a JSON
-          'name': name,
+          'fullName': fullName,
           'email': email,
           'password': password,
+          if (phone != null && phone.isNotEmpty) 'phone': phone,
         }),
       );
 
@@ -48,7 +50,7 @@ class AuthService {
           'success': false,
           'message':
               responseData['message'] ??
-              'Error en el registro', // Mensaje de error
+                  'Error en el registro', // Mensaje de error
         };
       }
     } catch (error) {
@@ -86,6 +88,44 @@ class AuthService {
         return {
           'success': false,
           'message': responseData['message'] ?? 'Error en el login',
+        };
+      }
+    } catch (error) {
+      return {'success': false, 'message': 'Error de conexión: $error'};
+    }
+  }
+
+  // Método adicional para actualizar perfil del usuario
+  static Future<Map<String, dynamic>> updateProfile({
+    required String token,
+    required String fullName,
+    String? phone,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'fullName': fullName,
+          if (phone != null && phone.isNotEmpty) 'phone': phone,
+        }),
+      );
+
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': responseData['message'],
+          'user': responseData['user'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Error al actualizar perfil',
         };
       }
     } catch (error) {
