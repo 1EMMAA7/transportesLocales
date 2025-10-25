@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transportes_locales/widgets/administratorspage.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 import 'package:transportes_locales/widgets/registerpage.dart';
 import 'package:transportes_locales/services/authservice.dart';
@@ -222,13 +223,24 @@ class _LoginPageState extends State<LoginPage> {
         await Future.delayed(const Duration(milliseconds: 1500));
 
         if (context.mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MapsPage(user: user),
-            ),
-          );
-        }
+    if (user.isTerminalAdmin) {
+      // Navegar a la página de administrador
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AdministratorsPage(user: user),
+        ),
+      );
+    } else {
+      // Navegar a MapsPage para usuarios normales
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MapsPage(user: user),
+        ),
+      );
+    }
+  }
       } else {
         _showMessage(
           result['message'] ?? 'Error en el inicio de sesión',

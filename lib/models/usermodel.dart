@@ -4,6 +4,7 @@ class User {
   final String email;
   final String? phone;
   final String? token;
+  final bool isTerminalAdmin;
   final String? createdAt;
   final String? updatedAt;
 
@@ -13,6 +14,7 @@ class User {
     required this.email,
     this.phone,
     this.token,
+    required this.isTerminalAdmin,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,6 +26,7 @@ class User {
       email: json['user']?['email'] ?? json['email'] ?? '',
       phone: json['user']?['phone'] ?? json['phone'],
       token: json['token'],
+      isTerminalAdmin: json['user']?['isTerminalAdmin'] ?? json['isTerminalAdmin'] ?? false,
       createdAt: json['user']?['createdAt'] ?? json['createdAt'],
       updatedAt: json['user']?['updatedAt'] ?? json['updatedAt'],
     );
@@ -36,6 +39,7 @@ class User {
       'email': email,
       'phone': phone,
       'token': token,
+      'isTerminalAdmin': isTerminalAdmin,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };

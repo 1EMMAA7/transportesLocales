@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/services/authservice.dart';
 import 'package:transportes_locales/models/usermodel.dart';
+import 'package:transportes_locales/widgets/administratorspage.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -11,13 +12,14 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final TextEditingController _fullNameController = TextEditingController(); // Cambiado de _nameController
+  final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController(); // Nuevo controlador para teléfono
+  final TextEditingController _phoneController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isTerminalAdmin = false; // Nuevo: para diferenciar el tipo de cuenta
 
   Future<void> _registerUser() async {
     if (_fullNameController.text.isEmpty ||
@@ -43,10 +45,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final result = await AuthService.registerUser(
-        fullName: _fullNameController.text, // Cambiado para usar fullName
+        fullName: _fullNameController.text,
         email: _emailController.text,
         password: _passwordController.text,
-        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null, // Teléfono opcional
+        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+        isTerminalAdmin: _isTerminalAdmin, // Nuevo parámetro
       );
 
       setState(() {
@@ -54,26 +57,35 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       if (result['success'] == true) {
-        // Crear objeto User con los datos de la API
-        // Nota: Asegúrate de que tu UserModel pueda manejar la nueva estructura
-        final user = User.fromJson(result['user'] ?? result); // Ajusta según tu UserModel
-        
-        _showSuccessMessage('¡Registro exitoso!');
+  final user = User.fromJson(result['user'] ?? result);
+  
+  _showSuccessMessage('¡Registro exitoso! ${user.isTerminalAdmin ? 'Como administrador de terminal' : 'Como usuario'}');
 
-        // Navegar a MapsPage pasando el usuario
-        await Future.delayed(const Duration(seconds: 2));
-        
-        if (context.mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MapsPage(user: user),
-            ),
-          );
-        }
-      } else {
-        _showMessage(result['message'] ?? 'Error en el registro');
-      }
+  // Navegar a diferentes páginas según el tipo de usuario
+  await Future.delayed(const Duration(seconds: 2));
+  
+  if (context.mounted) {
+    if (user.isTerminalAdmin) {
+      // Navegar a la página de administrador de terminal
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AdministratorsPage(user: user),
+        ),
+      );
+    } else {
+      // Navegar a MapsPage para usuarios normales
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MapsPage(user: user),
+        ),
+      );
+    }
+  }
+} else {
+  _showMessage(result['message'] ?? 'Error en el registro');
+}
     } catch (error) {
       setState(() {
         _isLoading = false;
@@ -162,7 +174,68 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
+
+                // Selector de tipo de cuenta
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Tipo de cuenta",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _AccountTypeCard(
+                              title: "Usuario",
+                              description: "Para pasajeros",
+                              icon: Icons.person,
+                              isSelected: !_isTerminalAdmin,
+                              onTap: () {
+                                setState(() {
+                                  _isTerminalAdmin = false;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _AccountTypeCard(
+                              title: "Administrador",
+                              description: "Para terminales",
+                              icon: Icons.admin_panel_settings,
+                              isSelected: _isTerminalAdmin,
+                              onTap: () {
+                                setState(() {
+                                  _isTerminalAdmin = true;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
                 
                 Container(
                   decoration: BoxDecoration(
@@ -170,7 +243,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
-                    controller: _fullNameController, // Cambiado a _fullNameController
+                    controller: _fullNameController,
                     decoration: const InputDecoration(
                       hintText: "Nombre completo",
                       border: InputBorder.none,
@@ -197,23 +270,25 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 
-                const SizedBox(height: 20),
-                
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _phoneController, // Nuevo campo para teléfono
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      hintText: "Teléfono (opcional)",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                // Campo de teléfono solo para usuarios normales
+                if (!_isTerminalAdmin) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        hintText: "Teléfono (opcional)",
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
                     ),
                   ),
-                ),
+                ],
                 
                 const SizedBox(height: 20),
                 
@@ -258,7 +333,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _registerUser,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
+                      backgroundColor: _isTerminalAdmin ? Colors.blue[800] : Colors.black87,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -275,9 +350,9 @@ class _RegisterPageState extends State<RegisterPage> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
-                            "Registrarse",
-                            style: TextStyle(
+                        : Text(
+                            _isTerminalAdmin ? "Registrar como administrador" : "Registrarse como usuario",
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -294,11 +369,72 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _fullNameController.dispose(); // Cambiado a _fullNameController
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _phoneController.dispose(); // Nuevo dispose para el controlador de teléfono
+    _phoneController.dispose();
     super.dispose();
+  }
+}
+
+// Widget para las tarjetas de tipo de cuenta
+class _AccountTypeCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _AccountTypeCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[50] : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.blue : Colors.grey,
+              size: 32,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.blue : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? Colors.blue : Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
