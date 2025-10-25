@@ -132,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
                     child: Image.network(
-                      "https://img3.pillowfort.social/posts/44a1658f1e2f47597c2a.gif",
+                      "https://drive.google.com/file/d/1CEsGWeYGXCwrnRvnTGw6URLZW_TTvDT9/view?usp=sharing",
                       fit: BoxFit.cover,
                     ),
                   ),
