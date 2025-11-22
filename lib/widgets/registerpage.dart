@@ -19,7 +19,22 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _phoneController = TextEditingController();
 
   bool _isLoading = false;
-  bool _isTerminalAdmin = false; // Nuevo: para diferenciar el tipo de cuenta
+  bool _isTerminalAdmin = false;
+
+  // Paleta de colores fríos
+  final Color _primaryColor = const Color(0xFF2C5F9B); // Azul profundo - Confianza
+  final Color _secondaryColor = const Color(0xFF4A90A4); // Azul verdoso - Calma
+  final Color _accentColor = const Color(0xFF6BB2B2); // Verde azulado - Equilibrio
+  final Color _backgroundLight = const Color(0xFFF8FBFE); // Azul muy claro - Pureza
+  final Color _cardColor = const Color(0xFFE3F2FD); // Azul claro - Tranquilidad
+  final Color _textPrimary = const Color(0xFF2C3E50); // Azul oscuro - Profesionalismo
+  final Color _textSecondary = const Color(0xFF5D6D7E); // Gris azulado - Neutralidad
+  final Color _successColor = const Color(0xFF27AE60); // Verde esmeralda - Crecimiento
+  final Color _warningColor = const Color(0xFFE74C3C); // Rojo coral - Precaución
+  final Color _userColor = const Color(0xFF3498DB); // Azul brillante - Accesibilidad
+  final Color _adminColor = const Color(0xFF2C5F9B); // Azul profundo - Autoridad
+  final Color _gradientStart = const Color(0xFF667EEA); // Púrpura azulado
+  final Color _gradientEnd = const Color(0xFF764BA2); // Púrpura
 
   Future<void> _registerUser() async {
     if (_fullNameController.text.isEmpty ||
@@ -49,7 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text,
         password: _passwordController.text,
         phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-        isTerminalAdmin: _isTerminalAdmin, // Nuevo parámetro
+        isTerminalAdmin: _isTerminalAdmin,
       );
 
       setState(() {
@@ -57,35 +72,32 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       if (result['success'] == true) {
-  final user = User.fromJson(result['user'] ?? result);
-  
-  _showSuccessMessage('¡Registro exitoso! ${user.isTerminalAdmin ? 'Como administrador de terminal' : 'Como usuario'}');
+        final user = User.fromJson(result['user'] ?? result);
+        
+        _showSuccessMessage('¡Registro exitoso! ${user.isTerminalAdmin ? 'Como administrador de terminal' : 'Como usuario'}');
 
-  // Navegar a diferentes páginas según el tipo de usuario
-  await Future.delayed(const Duration(seconds: 2));
-  
-  if (context.mounted) {
-    if (user.isTerminalAdmin) {
-      // Navegar a la página de administrador de terminal
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AdministratorsPage(user: user),
-        ),
-      );
-    } else {
-      // Navegar a MapsPage para usuarios normales
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MapsPage(user: user),
-        ),
-      );
-    }
-  }
-} else {
-  _showMessage(result['message'] ?? 'Error en el registro');
-}
+        await Future.delayed(const Duration(seconds: 2));
+        
+        if (context.mounted) {
+          if (user.isTerminalAdmin) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AdministratorsPage(user: user),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MapsPage(user: user),
+              ),
+            );
+          }
+        }
+      } else {
+        _showMessage(result['message'] ?? 'Error en el registro');
+      }
     } catch (error) {
       setState(() {
         _isLoading = false;
@@ -98,7 +110,9 @@ class _RegisterPageState extends State<RegisterPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: _warningColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -106,8 +120,16 @@ class _RegisterPageState extends State<RegisterPage> {
   void _showSuccessMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: _successColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -115,253 +137,357 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: _isLoading
-              ? null
-              : () {
-                  Navigator.pop(context);
-                },
-        ),
-      ),
+      backgroundColor: _backgroundLight,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(60),
-                    color: Colors.grey[100],
+          child: Column(
+            children: [
+              // Header con gradiente
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [_gradientStart, _gradientEnd],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(60),
-                    child: Image.network(
-                      "https://drive.google.com/file/d/1CEsGWeYGXCwrnRvnTGw6URLZW_TTvDT9/view?usp=sharing",
-                      fit: BoxFit.cover,
-                    ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-                
-                const SizedBox(height: 40),
-                
-                const Text(
-                  "Crear Cuenta",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                
-                const SizedBox(height: 8),
-                
-                const Text(
-                  "Regístrate para comenzar",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
-
-                // Selector de tipo de cuenta
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey[300]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Tipo de cuenta",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 20,
+                      left: 20,
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                        onPressed: _isLoading ? null : () => Navigator.pop(context),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
+                    ),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: _AccountTypeCard(
-                              title: "Usuario",
-                              description: "Para pasajeros",
-                              icon: Icons.person,
-                              isSelected: !_isTerminalAdmin,
-                              onTap: () {
-                                setState(() {
-                                  _isTerminalAdmin = false;
-                                });
-                              },
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                            ),
+                            child: Icon(
+                              Icons.person_add_alt_1,
+                              color: Colors.white,
+                              size: 40,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _AccountTypeCard(
-                              title: "Administrador",
-                              description: "Para terminales",
-                              icon: Icons.admin_panel_settings,
-                              isSelected: _isTerminalAdmin,
-                              onTap: () {
-                                setState(() {
-                                  _isTerminalAdmin = true;
-                                });
-                              },
+                          const SizedBox(height: 16),
+                          Text(
+                            "Crear Cuenta",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Comienza tu viaje con nosotros",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white.withOpacity(0.9),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
-                
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _fullNameController,
-                    decoration: const InputDecoration(
-                      hintText: "Nombre completo",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
-                  ),
+                  ],
                 ),
-                
-                const SizedBox(height: 20),
-                
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      hintText: "Correo Electrónico",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    ),
-                  ),
-                ),
-                
-                // Campo de teléfono solo para usuarios normales
-                if (!_isTerminalAdmin) ...[
-                  const SizedBox(height: 20),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        hintText: "Teléfono (opcional)",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    
+                    // Selector de tipo de cuenta
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: _cardColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.group_work, color: _primaryColor, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Tipo de Cuenta",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: _textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _AccountTypeCard(
+                                  title: "Usuario",
+                                  description: "Para pasajeros",
+                                  icon: Icons.person_outline,
+                                  isSelected: !_isTerminalAdmin,
+                                  color: _userColor,
+                                  onTap: () {
+                                    setState(() {
+                                      _isTerminalAdmin = false;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _AccountTypeCard(
+                                  title: "Administrador",
+                                  description: "Para terminales",
+                                  icon: Icons.admin_panel_settings_outlined,
+                                  isSelected: _isTerminalAdmin,
+                                  color: _adminColor,
+                                  onTap: () {
+                                    setState(() {
+                                      _isTerminalAdmin = true;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-                
-                const SizedBox(height: 20),
-                
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      hintText: "Contraseña",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      hintText: "Confirmar contraseña",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
-                
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _registerUser,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _isTerminalAdmin ? Colors.blue[800] : Colors.black87,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Campos del formulario
+                    _buildFormSection(),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Botón de registro
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _primaryColor.withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      elevation: 0,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _registerUser,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isTerminalAdmin ? _adminColor : _userColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _isTerminalAdmin ? Icons.admin_panel_settings : Icons.person_add,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    _isTerminalAdmin ? "Registrar Administrador" : "Crear Cuenta de Usuario",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            _isTerminalAdmin ? "Registrar como administrador" : "Registrarse como usuario",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Texto informativo
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _accentColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: _accentColor.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.security, color: _accentColor, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Tus datos están protegidos y encriptados",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                  ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Información Personal",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Completa tus datos para continuar",
+          style: TextStyle(
+            fontSize: 14,
+            color: _textSecondary,
+          ),
+        ),
+        const SizedBox(height: 24),
+        
+        _buildTextField(
+          controller: _fullNameController,
+          hintText: "Nombre completo",
+          icon: Icons.person_outline,
+          iconColor: _secondaryColor,
+        ),
+        const SizedBox(height: 20),
+        
+        _buildTextField(
+          controller: _emailController,
+          hintText: "Correo electrónico",
+          icon: Icons.email_outlined,
+          iconColor: _secondaryColor,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        
+        if (!_isTerminalAdmin) ...[
+          const SizedBox(height: 20),
+          _buildTextField(
+            controller: _phoneController,
+            hintText: "Teléfono (opcional)",
+            icon: Icons.phone_outlined,
+            iconColor: _secondaryColor,
+            keyboardType: TextInputType.phone,
+          ),
+        ],
+        
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _passwordController,
+          hintText: "Contraseña",
+          icon: Icons.lock_outline,
+          iconColor: _secondaryColor,
+          isPassword: true,
+        ),
+        
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _confirmPasswordController,
+          hintText: "Confirmar contraseña",
+          icon: Icons.lock_outline,
+          iconColor: _secondaryColor,
+          isPassword: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    required Color iconColor,
+    TextInputType keyboardType = TextInputType.text,
+    bool isPassword = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: _cardColor.withOpacity(0.5)),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword,
+        keyboardType: keyboardType,
+        style: TextStyle(color: _textPrimary, fontSize: 16),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(color: _textSecondary.withOpacity(0.7)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          prefixIcon: Icon(icon, color: iconColor),
+          suffixIcon: isPassword ? Icon(Icons.visibility_off_outlined, color: _textSecondary.withOpacity(0.5)) : null,
         ),
       ),
     );
@@ -378,12 +504,12 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-// Widget para las tarjetas de tipo de cuenta
 class _AccountTypeCard extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
   final bool isSelected;
+  final Color color;
   final VoidCallback onTap;
 
   const _AccountTypeCard({
@@ -391,6 +517,7 @@ class _AccountTypeCard extends StatelessWidget {
     required this.description,
     required this.icon,
     required this.isSelected,
+    required this.color,
     required this.onTap,
   });
 
@@ -398,29 +525,52 @@ class _AccountTypeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[50] : Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? color.withOpacity(0.15) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey[300]!,
+            color: isSelected ? color : Colors.transparent,
             width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ] : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.blue : Colors.grey,
-              size: 32,
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: isSelected ? color : color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : color,
+                size: 24,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               title,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.blue : Colors.black87,
+                color: isSelected ? color : const Color(0xFF2C3E50),
+                fontSize: 16,
               ),
             ),
             const SizedBox(height: 4),
@@ -428,7 +578,7 @@ class _AccountTypeCard extends StatelessWidget {
               description,
               style: TextStyle(
                 fontSize: 12,
-                color: isSelected ? Colors.blue : Colors.grey,
+                color: isSelected ? color.withOpacity(0.8) : const Color(0xFF7F8C8D),
               ),
               textAlign: TextAlign.center,
             ),
