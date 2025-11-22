@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:transportes_locales/widgets/administratorspage.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 import 'package:transportes_locales/widgets/registerpage.dart';
 import 'package:transportes_locales/services/authservice.dart';
@@ -29,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   final Color _textSecondary = const Color(0xFF5D6D7E); // Gris azulado - Neutralidad
   final Color _successColor = const Color(0xFF27AE60); // Verde esmeralda - Crecimiento
   final Color _warningColor = const Color(0xFFE74C3C); // Rojo coral - Precaución
+  final Color _infoColor = const Color(0xFF3498DB); // Azul brillante - Información
   final Color _gradientStart = const Color(0xFF667EEA); // Púrpura azulado
   final Color _gradientEnd = const Color(0xFF764BA2); // Púrpura
 
@@ -60,21 +60,12 @@ class _LoginPageState extends State<LoginPage> {
         await Future.delayed(const Duration(milliseconds: 1500));
 
         if (context.mounted) {
-          if (user.isTerminalAdmin) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AdministratorsPage(user: user),
-              ),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapsPage(user: user),
-              ),
-            );
-          }
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapsPage(user: user),
+            ),
+          );
         }
       } else {
         _showMessage(
@@ -90,12 +81,35 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _enterAsGuest(BuildContext context) {
+    _showMessage('Entrando como invitado...', _infoColor);
+    
+    // Crear un usuario invitado
+    final guestUser = User(
+      id: 0,
+      fullName: 'Invitado',
+      email: 'invitado@example.com',
+      isTerminalAdmin: false,
+    );
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MapsPage(user: guestUser),
+          ),
+        );
+      }
+    });
+  }
+
   void _showMessage(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: backgroundColor,
         content: Text(message, style: const TextStyle(color: Colors.white)),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -172,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            "Bienvenido de Nuevo",
+                            "Bienvenido",
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
@@ -182,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Ingresa a tu cuenta para continuar",
+                            "Explora las rutas de transporte",
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white.withOpacity(0.9),
@@ -202,7 +216,116 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     const SizedBox(height: 20),
                     
-                    // Sección de formulario
+                    // Botón de acceso rápido como invitado
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: _infoColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _infoColor.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.explore_outlined, color: _infoColor, size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Acceso Rápido",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Explora el mapa sin crear cuenta",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _infoColor.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : () => _enterAsGuest(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _infoColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.public, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    "Entrar como Invitado",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Separador "O inicia sesión"
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(color: _textSecondary.withOpacity(0.3)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            "O inicia sesión",
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(color: _textSecondary.withOpacity(0.3)),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Sección de formulario de login
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
@@ -255,7 +378,6 @@ class _LoginPageState extends State<LoginPage> {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: _isLoading ? null : () {
-                                // TODO: Implementar recuperación de contraseña
                                 _showMessage('Función en desarrollo', _primaryColor);
                               },
                               style: TextButton.styleFrom(
@@ -391,7 +513,7 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              "Tu seguridad es nuestra prioridad. Todos los datos están encriptados.",
+                              "Tu seguridad es nuestra prioridad. Los datos están protegidos.",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: _textSecondary,

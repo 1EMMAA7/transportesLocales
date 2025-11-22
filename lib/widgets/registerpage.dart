@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:transportes_locales/services/authservice.dart';
 import 'package:transportes_locales/models/usermodel.dart';
-import 'package:transportes_locales/widgets/administratorspage.dart';
 import 'package:transportes_locales/widgets/mapspage.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -19,7 +18,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _phoneController = TextEditingController();
 
   bool _isLoading = false;
-  bool _isTerminalAdmin = false;
 
   // Paleta de colores fríos
   final Color _primaryColor = const Color(0xFF2C5F9B); // Azul profundo - Confianza
@@ -31,8 +29,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final Color _textSecondary = const Color(0xFF5D6D7E); // Gris azulado - Neutralidad
   final Color _successColor = const Color(0xFF27AE60); // Verde esmeralda - Crecimiento
   final Color _warningColor = const Color(0xFFE74C3C); // Rojo coral - Precaución
-  final Color _userColor = const Color(0xFF3498DB); // Azul brillante - Accesibilidad
-  final Color _adminColor = const Color(0xFF2C5F9B); // Azul profundo - Autoridad
   final Color _gradientStart = const Color(0xFF667EEA); // Púrpura azulado
   final Color _gradientEnd = const Color(0xFF764BA2); // Púrpura
 
@@ -64,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text,
         password: _passwordController.text,
         phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-        isTerminalAdmin: _isTerminalAdmin,
+        isTerminalAdmin: false, // Siempre false - solo usuarios normales
       );
 
       setState(() {
@@ -74,26 +70,18 @@ class _RegisterPageState extends State<RegisterPage> {
       if (result['success'] == true) {
         final user = User.fromJson(result['user'] ?? result);
         
-        _showSuccessMessage('¡Registro exitoso! ${user.isTerminalAdmin ? 'Como administrador de terminal' : 'Como usuario'}');
+        _showSuccessMessage('¡Registro exitoso!');
 
         await Future.delayed(const Duration(seconds: 2));
         
         if (context.mounted) {
-          if (user.isTerminalAdmin) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AdministratorsPage(user: user),
-              ),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapsPage(user: user),
-              ),
-            );
-          }
+          // Siempre navega a MapsPage
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapsPage(user: user),
+            ),
+          );
         }
       } else {
         _showMessage(result['message'] ?? 'Error en el registro');
@@ -217,7 +205,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     const SizedBox(height: 20),
                     
-                    // Selector de tipo de cuenta
+                    // Información de tipo de cuenta (solo usuario)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -232,56 +220,44 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Icon(Icons.group_work, color: _primaryColor, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Tipo de Cuenta",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: _textPrimary,
-                                ),
-                              ),
-                            ],
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: _primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.person_outline,
+                              color: _primaryColor,
+                              size: 24,
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _AccountTypeCard(
-                                  title: "Usuario",
-                                  description: "Para pasajeros",
-                                  icon: Icons.person_outline,
-                                  isSelected: !_isTerminalAdmin,
-                                  color: _userColor,
-                                  onTap: () {
-                                    setState(() {
-                                      _isTerminalAdmin = false;
-                                    });
-                                  },
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Cuenta de Usuario",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: _textPrimary,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _AccountTypeCard(
-                                  title: "Administrador",
-                                  description: "Para terminales",
-                                  icon: Icons.admin_panel_settings_outlined,
-                                  isSelected: _isTerminalAdmin,
-                                  color: _adminColor,
-                                  onTap: () {
-                                    setState(() {
-                                      _isTerminalAdmin = true;
-                                    });
-                                  },
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Para pasajeros - Acceso completo al mapa de rutas",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _textSecondary,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -309,7 +285,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _registerUser,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isTerminalAdmin ? _adminColor : _userColor,
+                          backgroundColor: _primaryColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
@@ -329,13 +305,10 @@ class _RegisterPageState extends State<RegisterPage> {
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    _isTerminalAdmin ? Icons.admin_panel_settings : Icons.person_add,
-                                    size: 20,
-                                  ),
+                                  Icon(Icons.person_add, size: 20),
                                   const SizedBox(width: 12),
                                   Text(
-                                    _isTerminalAdmin ? "Registrar Administrador" : "Crear Cuenta de Usuario",
+                                    "Crear Cuenta",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -423,16 +396,14 @@ class _RegisterPageState extends State<RegisterPage> {
           keyboardType: TextInputType.emailAddress,
         ),
         
-        if (!_isTerminalAdmin) ...[
-          const SizedBox(height: 20),
-          _buildTextField(
-            controller: _phoneController,
-            hintText: "Teléfono (opcional)",
-            icon: Icons.phone_outlined,
-            iconColor: _secondaryColor,
-            keyboardType: TextInputType.phone,
-          ),
-        ],
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _phoneController,
+          hintText: "Teléfono (opcional)",
+          icon: Icons.phone_outlined,
+          iconColor: _secondaryColor,
+          keyboardType: TextInputType.phone,
+        ),
         
         const SizedBox(height: 20),
         _buildTextField(
@@ -501,90 +472,5 @@ class _RegisterPageState extends State<RegisterPage> {
     _confirmPasswordController.dispose();
     _phoneController.dispose();
     super.dispose();
-  }
-}
-
-class _AccountTypeCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final IconData icon;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _AccountTypeCard({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.isSelected,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? color : Colors.transparent,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ] : [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: isSelected ? color : color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: isSelected ? Colors.white : color,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: isSelected ? color : const Color(0xFF2C3E50),
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? color.withOpacity(0.8) : const Color(0xFF7F8C8D),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
