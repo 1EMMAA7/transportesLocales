@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  static const String baseUrl = 'https://hpj1hbd6-3000.usw3.devtunnels.ms/api/auth';
+  static const String baseUrl = 'https://dnhcsmsk-3000.usw3.devtunnels.ms/api/auth';
 
   static Future<Map<String, dynamic>> registerUser({
     required String fullName,

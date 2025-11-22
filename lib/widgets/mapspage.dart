@@ -215,7 +215,7 @@ class _MapWebViewState extends State<MapWebView> {
     super.initState();
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://umap.openstreetmap.fr/es/map/trasnportes-locales-huajauapan_1298643#18/17.81090/-97.77553')); // URL DEL MAPA
+      ..loadRequest(Uri.parse('https://umap.openstreetmap.fr/es/map/trasnportes-locales-huajauapan_1298643#18/17.81052/-97.77547')); // URL DEL MAPA
   }
 
   @override
