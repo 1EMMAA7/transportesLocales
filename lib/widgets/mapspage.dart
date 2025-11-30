@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:transportes_locales/widgets/loginpage.dart';
 import 'package:transportes_locales/models/usermodel.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
-class MapsPage extends StatelessWidget {
+class MapsPage extends StatefulWidget {
   final User user;
 
   const MapsPage({super.key, required this.user});
 
+  @override
+  State<MapsPage> createState() => _MapsPageState();
+}
+
+class _MapsPageState extends State<MapsPage> {
   // Paleta de colores fríos (consistente con las demás páginas)
   final Color _primaryColor = const Color(0xFF2C5F9B);
   final Color _secondaryColor = const Color(0xFF4A90A4);
@@ -21,7 +27,272 @@ class MapsPage extends StatelessWidget {
   final Color _gradientStart = const Color(0xFF667EEA);
   final Color _gradientEnd = const Color(0xFF764BA2);
 
-  void _showMessage(BuildContext context, String message, Color color) {
+  final MapController _mapController = MapController();
+  List<MapPoint> _allPoints = [];
+  List<MapPoint> _filteredPoints = [];
+  String _currentFilter = 'all';
+  bool _isLoading = true;
+
+  // Coordenadas de Huajuapan de León
+  final LatLng _initialCenter = const LatLng(17.81052, -97.77547);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMapPoints();
+  }
+
+  void _loadMapPoints() {
+    // Puntos de ejemplo para transporte en Huajuapan
+    final List<MapPoint> points = [
+      MapPoint(
+        id: '1',
+        name: 'Terminal Central',
+        position: const LatLng(17.8076, -97.7732),
+        isFavorite: true,
+        lastVisited: DateTime.now(),
+        type: 'terminal',
+        description: 'Terminal principal de autobuses',
+      ),
+      MapPoint(
+        id: '2',
+        name: 'Parada Mercado',
+        position: const LatLng(17.8068, -97.7759),
+        isFavorite: false,
+        lastVisited: DateTime.now().subtract(const Duration(hours: 2)),
+        type: 'parada',
+        description: 'Parada frente al mercado central',
+      ),
+      MapPoint(
+        id: '3',
+        name: 'Estación Universidad',
+        position: const LatLng(17.8123, -97.7781),
+        isFavorite: true,
+        lastVisited: DateTime.now().subtract(const Duration(days: 1)),
+        type: 'terminal',
+        description: 'Parada universitaria',
+      ),
+      MapPoint(
+        id: '4',
+        name: 'Parada Hospital',
+        position: const LatLng(17.8089, -97.7704),
+        isFavorite: false,
+        lastVisited: DateTime.now().subtract(const Duration(hours: 5)),
+        type: 'parada',
+        description: 'Parada cerca del hospital regional',
+      ),
+      MapPoint(
+        id: '5',
+        name: 'Terminal Sur',
+        position: const LatLng(17.8034, -97.7768),
+        isFavorite: false,
+        lastVisited: DateTime.now().subtract(const Duration(days: 2)),
+        type: 'terminal',
+        description: 'Terminal sur de la ciudad',
+      ),
+    ];
+
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {
+        _allPoints = points;
+        _filteredPoints = _allPoints;
+        _isLoading = false;
+      });
+    });
+  }
+
+  void _applyFilter(String filterType) {
+    setState(() {
+      _currentFilter = filterType;
+
+      switch (filterType) {
+        case 'favorites':
+          _filteredPoints = _allPoints.where((point) => point.isFavorite).toList();
+          break;
+        case 'recent':
+          final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
+          _filteredPoints = _allPoints.where((point) => 
+            point.lastVisited.isAfter(oneDayAgo)).toList();
+          break;
+        case 'terminals':
+          _filteredPoints = _allPoints.where((point) => point.type == 'terminal').toList();
+          break;
+        case 'stops':
+          _filteredPoints = _allPoints.where((point) => point.type == 'parada').toList();
+          break;
+        default:
+          _filteredPoints = _allPoints;
+      }
+    });
+  }
+
+  void _toggleFavorite(String pointId) {
+    setState(() {
+      final point = _allPoints.firstWhere((p) => p.id == pointId);
+      point.isFavorite = !point.isFavorite;
+      _applyFilter(_currentFilter); // Re-aplicar filtro actual
+    });
+    _showMessage(
+        '${_allPoints.firstWhere((p) => p.id == pointId).isFavorite ? 'Agregado a' : 'Eliminado de'} favoritos', 
+        _successColor
+    );
+  }
+
+  void _goToCurrentLocation() {
+    _mapController.move(_initialCenter, 15.0);
+    _showMessage('Centrando en ubicación principal...', _accentColor);
+  }
+
+  void _showPointDetails(MapPoint point) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header del punto
+                Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: point.type == 'terminal' 
+                            ? _primaryColor.withOpacity(0.1) 
+                            : _accentColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        point.type == 'terminal' ? Icons.directions_bus : Icons.place,
+                        color: point.type == 'terminal' ? _primaryColor : _accentColor,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            point.name,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
+                          ),
+                          Text(
+                            point.type == 'terminal' ? 'Terminal' : 'Parada',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        point.isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: point.isFavorite ? _warningColor : _textSecondary,
+                        size: 28,
+                      ),
+                      onPressed: () => _toggleFavorite(point.id),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Descripción
+                if (point.description.isNotEmpty) ...[
+                  Text(
+                    point.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                
+                // Última visita
+                Row(
+                  children: [
+                    Icon(Icons.access_time, color: _textSecondary, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Última visita: ${_formatDate(point.lastVisited)}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Botones de acción
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _textSecondary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(color: _textSecondary.withOpacity(0.3)),
+                        ),
+                        child: const Text('Cerrar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _mapController.move(point.position, 16.0);
+                          Navigator.pop(context);
+                          _showMessage('Navegando a ${point.name}', _primaryColor);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Ir aquí'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10), // Espacio extra para seguridad
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showMessage(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: color,
@@ -33,12 +304,31 @@ class MapsPage extends StatelessWidget {
     );
   }
 
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inMinutes < 60) {
+      return 'Hace ${difference.inMinutes} min';
+    } else if (difference.inHours < 24) {
+      return 'Hace ${difference.inHours} h';
+    } else {
+      return 'Hace ${difference.inDays} días';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundLight,
       appBar: _buildAppBar(context),
-      body: const MapWebView(),
+      body: _isLoading ? _buildLoadingIndicator() : _buildMapContent(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _goToCurrentLocation,
+        backgroundColor: _primaryColor,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.my_location),
+      ),
     );
   }
 
@@ -56,21 +346,6 @@ class MapsPage extends StatelessWidget {
         ),
       ),
       actions: [
-        // Botón de ubicación
-        Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: _accentColor,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.my_location, color: Colors.white),
-            onPressed: () {
-              _showMessage(context, 'Buscando tu ubicación...', _accentColor);
-            },
-          ),
-        ),
-        
         // Menú de perfil
         Container(
           margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
@@ -93,7 +368,7 @@ class MapsPage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.person,
                 color: Colors.white,
                 size: 20,
@@ -134,7 +409,7 @@ class MapsPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  user.fullName,
+                                  widget.user.fullName,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -144,7 +419,7 @@ class MapsPage extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  user.email,
+                                  widget.user.email,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: _textSecondary,
@@ -236,6 +511,174 @@ class MapsPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMapContent() {
+    return Column(
+      children: [
+        // Barra de filtros
+        _buildFilterBar(),
+        // Mapa
+        Expanded(
+          child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              center: _initialCenter,
+              zoom: 14.0,
+              maxZoom: 18.0,
+              minZoom: 10.0,
+              onTap: (tapPosition, point) {
+                // Opcional: manejar taps en el mapa
+              },
+            ),
+            children: [
+              // Capa de tiles (mapa)
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.transporteslocales.app',
+              ),
+              // Capa de marcadores - CORREGIDO
+              MarkerLayer(
+                markers: _filteredPoints.map((point) {
+                  return Marker(
+                    point: point.position,
+                    width: 60.0,
+                    height: 60.0,
+                    child: GestureDetector(
+                      onTap: () => _showPointDetails(point),
+                      child: _buildCustomMarker(point),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      height: 70,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: [
+          Text(
+            'Filtrar puntos:',
+            style: TextStyle(
+              fontSize: 14,
+              color: _textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildFilterChip('Todos', 'all', Icons.map),
+                _buildFilterChip('Favoritos', 'favorites', Icons.favorite),
+                _buildFilterChip('Recientes', 'recent', Icons.access_time),
+                _buildFilterChip('Terminales', 'terminals', Icons.directions_bus),
+                _buildFilterChip('Paradas', 'stops', Icons.place),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _currentFilter == value;
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : _textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        avatar: Icon(
+          icon,
+          size: 16,
+          color: isSelected ? Colors.white : _primaryColor,
+        ),
+        selected: isSelected,
+        onSelected: (_) => _applyFilter(value),
+        checkmarkColor: Colors.white,
+        selectedColor: _primaryColor,
+        backgroundColor: _cardColor,
+      ),
+    );
+  }
+
+  Widget _buildCustomMarker(MapPoint point) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: point.type == 'terminal' ? _primaryColor : _accentColor,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.white,
+              width: 2,
+            ),
+          ),
+          child: Icon(
+            point.type == 'terminal' ? Icons.directions_bus : Icons.place,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+        if (point.isFavorite)
+          Icon(Icons.favorite, color: _warningColor, size: 16),
+      ],
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: _primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
+              strokeWidth: 3,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Cargando mapa...',
+            style: TextStyle(
+              fontSize: 16,
+              color: _textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -370,75 +813,22 @@ class MapsPage extends StatelessWidget {
   }
 }
 
-class MapWebView extends StatefulWidget {
-  const MapWebView({super.key});
+class MapPoint {
+  final String id;
+  final String name;
+  final LatLng position;
+  bool isFavorite;
+  final DateTime lastVisited;
+  final String type; // 'terminal' o 'parada'
+  final String description;
 
-  @override
-  State<MapWebView> createState() => _MapWebViewState();
-}
-
-class _MapWebViewState extends State<MapWebView> {
-  late final WebViewController controller;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (String url) {
-          setState(() {
-            _isLoading = true;
-          });
-        },
-        onPageFinished: (String url) {
-          setState(() {
-            _isLoading = false;
-          });
-        },
-      ))
-      ..loadRequest(Uri.parse('https://umap.openstreetmap.fr/es/map/trasnportes-locales-huajauapan_1298643#18/17.81052/-97.77547'));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        WebViewWidget(controller: controller),
-        if (_isLoading)
-          Container(
-            color: const Color(0xFFF8FBFE),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2C5F9B).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2C5F9B)),
-                      strokeWidth: 3,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Cargando mapa...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: const Color(0xFF2C3E50),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
+  MapPoint({
+    required this.id,
+    required this.name,
+    required this.position,
+    required this.isFavorite,
+    required this.lastVisited,
+    required this.type,
+    required this.description,
+  });
 }
