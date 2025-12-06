@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:transportes_locales/widgets/loginpage.dart';
 import 'package:transportes_locales/models/usermodel.dart';
 
@@ -14,7 +15,7 @@ class MapsPage extends StatefulWidget {
 }
 
 class _MapsPageState extends State<MapsPage> {
-  // Paleta de colores fríos (consistente con las demás páginas)
+  // Paleta de colores fríos
   final Color _primaryColor = const Color(0xFF2C5F9B);
   final Color _secondaryColor = const Color(0xFF4A90A4);
   final Color _accentColor = const Color(0xFF6BB2B2);
@@ -32,14 +33,25 @@ class _MapsPageState extends State<MapsPage> {
   List<MapPoint> _filteredPoints = [];
   String _currentFilter = 'all';
   bool _isLoading = true;
+  bool _locationLoading = false;
+  LatLng? _userLocation;
+  double _searchRadius = 2.0; // Radio en kilómetros
 
-  // Coordenadas de Huajuapan de León
+  // Coordenadas de Huajuapan de León (fallback)
   final LatLng _initialCenter = const LatLng(17.81052, -97.77547);
 
   @override
   void initState() {
     super.initState();
+    _initializeLocation();
+  }
+
+  Future<void> _initializeLocation() async {
+    // Primero cargar los puntos
     _loadMapPoints();
+    
+    // Luego obtener la ubicación
+    await _getCurrentLocation();
   }
 
   void _loadMapPoints() {
@@ -53,6 +65,7 @@ class _MapsPageState extends State<MapsPage> {
         lastVisited: DateTime.now(),
         type: 'terminal',
         description: 'Terminal principal de autobuses',
+        distance: 0.0,
       ),
       MapPoint(
         id: '2',
@@ -62,6 +75,7 @@ class _MapsPageState extends State<MapsPage> {
         lastVisited: DateTime.now().subtract(const Duration(hours: 2)),
         type: 'parada',
         description: 'Parada frente al mercado central',
+        distance: 0.0,
       ),
       MapPoint(
         id: '3',
@@ -71,6 +85,7 @@ class _MapsPageState extends State<MapsPage> {
         lastVisited: DateTime.now().subtract(const Duration(days: 1)),
         type: 'terminal',
         description: 'Parada universitaria',
+        distance: 0.0,
       ),
       MapPoint(
         id: '4',
@@ -80,6 +95,7 @@ class _MapsPageState extends State<MapsPage> {
         lastVisited: DateTime.now().subtract(const Duration(hours: 5)),
         type: 'parada',
         description: 'Parada cerca del hospital regional',
+        distance: 0.0,
       ),
       MapPoint(
         id: '5',
@@ -89,15 +105,112 @@ class _MapsPageState extends State<MapsPage> {
         lastVisited: DateTime.now().subtract(const Duration(days: 2)),
         type: 'terminal',
         description: 'Terminal sur de la ciudad',
+        distance: 0.0,
+      ),
+      // Puntos más lejanos para demostración
+      MapPoint(
+        id: '6',
+        name: 'Terminal Norte',
+        position: const LatLng(17.8200, -97.7800),
+        isFavorite: false,
+        lastVisited: DateTime.now().subtract(const Duration(days: 3)),
+        type: 'terminal',
+        description: 'Terminal norte de la ciudad',
+        distance: 0.0,
+      ),
+      MapPoint(
+        id: '7',
+        name: 'Parada Estadio',
+        position: const LatLng(17.8150, -97.7850),
+        isFavorite: false,
+        lastVisited: DateTime.now().subtract(const Duration(days: 1)),
+        type: 'parada',
+        description: 'Parada cerca del estadio',
+        distance: 0.0,
       ),
     ];
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    setState(() {
+      _allPoints = points;
+      _filteredPoints = _allPoints;
+    });
+  }
+
+  // Función para calcular distancia entre dos coordenadas
+  double _calculateDistance(LatLng start, LatLng end) {
+    const Distance distance = Distance();
+    return distance(start, end) / 1000; // Convertir a kilómetros
+  }
+
+  // Función para obtener ubicación actual
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _locationLoading = true;
+    });
+
+    try {
+      // Verificar permisos de ubicación
+      LocationPermission permission = await Geolocator.checkPermission();
+      
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showMessage('Los permisos de ubicación fueron denegados', _warningColor);
+          _finishLoading();
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showMessage('Los permisos de ubicación están denegados permanentemente. Active los permisos en configuración.', _warningColor);
+        _finishLoading();
+        return;
+      }
+
+      // Obtener ubicación actual
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+
+      final userLocation = LatLng(position.latitude, position.longitude);
+      
       setState(() {
-        _allPoints = points;
-        _filteredPoints = _allPoints;
-        _isLoading = false;
+        _userLocation = userLocation;
       });
+
+      // Calcular distancias para todos los puntos
+      _updatePointsDistance(userLocation);
+      
+      // Aplicar filtro de cercanía por defecto
+      _applyFilter('nearby');
+      
+      // Mover mapa a la ubicación del usuario
+      _mapController.move(userLocation, 15.0);
+      
+      _showMessage('Ubicación detectada. Mostrando puntos cercanos', _successColor);
+
+    } catch (e) {
+      _showMessage('Error obteniendo ubicación: $e', _warningColor);
+      // Usar ubicación por defecto
+      setState(() {
+        _userLocation = _initialCenter;
+      });
+      _updatePointsDistance(_initialCenter);
+    } finally {
+      _finishLoading();
+    }
+  }
+
+  void _updatePointsDistance(LatLng userLocation) {
+    for (var point in _allPoints) {
+      point.distance = _calculateDistance(userLocation, point.position);
+    }
+  }
+
+  void _finishLoading() {
+    setState(() {
+      _isLoading = false;
+      _locationLoading = false;
     });
   }
 
@@ -106,6 +219,16 @@ class _MapsPageState extends State<MapsPage> {
       _currentFilter = filterType;
 
       switch (filterType) {
+        case 'nearby':
+          if (_userLocation != null) {
+            _filteredPoints = _allPoints.where((point) => 
+              point.distance <= _searchRadius).toList();
+            // Ordenar por distancia
+            _filteredPoints.sort((a, b) => a.distance.compareTo(b.distance));
+          } else {
+            _filteredPoints = _allPoints;
+          }
+          break;
         case 'favorites':
           _filteredPoints = _allPoints.where((point) => point.isFavorite).toList();
           break;
@@ -130,7 +253,7 @@ class _MapsPageState extends State<MapsPage> {
     setState(() {
       final point = _allPoints.firstWhere((p) => p.id == pointId);
       point.isFavorite = !point.isFavorite;
-      _applyFilter(_currentFilter); // Re-aplicar filtro actual
+      _applyFilter(_currentFilter);
     });
     _showMessage(
         '${_allPoints.firstWhere((p) => p.id == pointId).isFavorite ? 'Agregado a' : 'Eliminado de'} favoritos', 
@@ -138,9 +261,96 @@ class _MapsPageState extends State<MapsPage> {
     );
   }
 
-  void _goToCurrentLocation() {
-    _mapController.move(_initialCenter, 15.0);
-    _showMessage('Centrando en ubicación principal...', _accentColor);
+  void _goToCurrentLocation() async {
+    setState(() {
+      _locationLoading = true;
+    });
+
+    await _getCurrentLocation();
+    
+    if (_userLocation != null) {
+      _mapController.move(_userLocation!, 15.0);
+    }
+  }
+
+  void _showRadiusSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(
+              'Radio de búsqueda',
+              style: TextStyle(
+                color: _textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Mostrar puntos dentro de:',
+                  style: TextStyle(color: _textSecondary),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${_searchRadius.toStringAsFixed(1)} km',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: _primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Slider(
+                  value: _searchRadius,
+                  min: 0.5,
+                  max: 10.0,
+                  divisions: 19,
+                  label: '${_searchRadius.toStringAsFixed(1)} km',
+                  onChanged: (value) {
+                    setState(() {
+                      _searchRadius = value;
+                    });
+                  },
+                  activeColor: _primaryColor,
+                  inactiveColor: _cardColor,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('0.5 km', style: TextStyle(color: _textSecondary)),
+                    Text('10 km', style: TextStyle(color: _textSecondary)),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancelar', style: TextStyle(color: _textSecondary)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _applyFilter('nearby');
+                  _showMessage('Radio actualizado a ${_searchRadius.toStringAsFixed(1)} km', _primaryColor);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Aplicar'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   void _showPointDetails(MapPoint point) {
@@ -215,6 +425,25 @@ class _MapsPageState extends State<MapsPage> {
                 ),
                 const SizedBox(height: 16),
                 
+                // Distancia (si tenemos ubicación)
+                if (_userLocation != null) ...[
+                  Row(
+                    children: [
+                      Icon(Icons.place, color: _textSecondary, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Distancia: ${point.distance.toStringAsFixed(1)} km',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                
                 // Descripción
                 if (point.description.isNotEmpty) ...[
                   Text(
@@ -283,7 +512,7 @@ class _MapsPageState extends State<MapsPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10), // Espacio extra para seguridad
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -323,11 +552,36 @@ class _MapsPageState extends State<MapsPage> {
       backgroundColor: _backgroundLight,
       appBar: _buildAppBar(context),
       body: _isLoading ? _buildLoadingIndicator() : _buildMapContent(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _goToCurrentLocation,
-        backgroundColor: _primaryColor,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.my_location),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Botón de radio de búsqueda
+          if (_userLocation != null) ...[
+            FloatingActionButton.small(
+              onPressed: _showRadiusSettings,
+              backgroundColor: _accentColor,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.tune),
+            ),
+            const SizedBox(height: 8),
+          ],
+          // Botón de ubicación
+          FloatingActionButton(
+            onPressed: _goToCurrentLocation,
+            backgroundColor: _primaryColor,
+            foregroundColor: Colors.white,
+            child: _locationLoading 
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.my_location),
+          ),
+        ],
       ),
     );
   }
@@ -337,13 +591,27 @@ class _MapsPageState extends State<MapsPage> {
       backgroundColor: Colors.white,
       elevation: 2,
       shadowColor: Colors.black.withOpacity(0.1),
-      title: Text(
-        'Mapa de Transportes',
-        style: TextStyle(
-          color: _textPrimary,
-          fontWeight: FontWeight.w700,
-          fontSize: 20,
-        ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Mapa de Transportes',
+            style: TextStyle(
+              color: _textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+            ),
+          ),
+          if (_userLocation != null) ...[
+            Text(
+              'Radio: ${_searchRadius.toStringAsFixed(1)} km',
+              style: TextStyle(
+                color: _textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
       ),
       actions: [
         // Menú de perfil
@@ -524,13 +792,10 @@ class _MapsPageState extends State<MapsPage> {
           child: FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              center: _initialCenter,
+              center: _userLocation ?? _initialCenter,
               zoom: 14.0,
               maxZoom: 18.0,
               minZoom: 10.0,
-              onTap: (tapPosition, point) {
-                // Opcional: manejar taps en el mapa
-              },
             ),
             children: [
               // Capa de tiles (mapa)
@@ -538,7 +803,34 @@ class _MapsPageState extends State<MapsPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.transporteslocales.app',
               ),
-              // Capa de marcadores - CORREGIDO
+              // Marcador de ubicación del usuario
+              if (_userLocation != null) ...[
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _userLocation!,
+                      width: 40.0,
+                      height: 40.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _successColor.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.person_pin_circle, color: Colors.white, size: 24),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              // Capa de marcadores de puntos
               MarkerLayer(
                 markers: _filteredPoints.map((point) {
                   return Marker(
@@ -579,6 +871,7 @@ class _MapsPageState extends State<MapsPage> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
+                _buildFilterChip('Cercanos', 'nearby', Icons.near_me),
                 _buildFilterChip('Todos', 'all', Icons.map),
                 _buildFilterChip('Favoritos', 'favorites', Icons.favorite),
                 _buildFilterChip('Recientes', 'recent', Icons.access_time),
@@ -670,11 +963,20 @@ class _MapsPageState extends State<MapsPage> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Cargando mapa...',
+            'Obteniendo ubicación...',
             style: TextStyle(
               fontSize: 16,
               color: _textPrimary,
               fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'La app necesita acceso a tu ubicación\npara mostrar puntos cercanos',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: _textSecondary,
             ),
           ),
         ],
@@ -704,7 +1006,6 @@ class _MapsPageState extends State<MapsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icono de advertencia
               Container(
                 width: 60,
                 height: 60,
@@ -714,9 +1015,7 @@ class _MapsPageState extends State<MapsPage> {
                 ),
                 child: Icon(Icons.logout, color: _warningColor, size: 30),
               ),
-              
               const SizedBox(height: 20),
-              
               Text(
                 'Cerrar Sesión',
                 style: TextStyle(
@@ -725,9 +1024,7 @@ class _MapsPageState extends State<MapsPage> {
                   color: _textPrimary,
                 ),
               ),
-              
               const SizedBox(height: 12),
-              
               Text(
                 '¿Estás seguro de que quieres cerrar sesión?',
                 textAlign: TextAlign.center,
@@ -736,9 +1033,7 @@ class _MapsPageState extends State<MapsPage> {
                   color: _textSecondary,
                 ),
               ),
-              
               const SizedBox(height: 24),
-              
               Row(
                 children: [
                   Expanded(
@@ -755,9 +1050,7 @@ class _MapsPageState extends State<MapsPage> {
                       child: const Text('Cancelar'),
                     ),
                   ),
-                  
                   const SizedBox(width: 12),
-                  
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
@@ -821,6 +1114,7 @@ class MapPoint {
   final DateTime lastVisited;
   final String type; // 'terminal' o 'parada'
   final String description;
+  double distance;
 
   MapPoint({
     required this.id,
@@ -830,5 +1124,6 @@ class MapPoint {
     required this.lastVisited,
     required this.type,
     required this.description,
+    required this.distance,
   });
 }
