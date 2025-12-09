@@ -31,108 +31,253 @@ class _MapsPageState extends State<MapsPage> {
   final MapController _mapController = MapController();
   List<MapPoint> _allPoints = [];
   List<MapPoint> _filteredPoints = [];
-  String _currentFilter = 'all';
+  String _currentFilter = 'all'; 
   bool _isLoading = true;
   bool _locationLoading = false;
   LatLng? _userLocation;
   double _searchRadius = 2.0; // Radio en kilómetros
+  final TextEditingController _searchController = TextEditingController();
+  List<RouteOption> _searchResults = [];
+  bool _isSearching = false;
+  bool _showSearchResults = false;
+  FocusNode _searchFocusNode = FocusNode();
 
   // Coordenadas de Huajuapan de León (fallback)
-  final LatLng _initialCenter = const LatLng(17.81052, -97.77547);
+  //final LatLng _initialCenter = const LatLng(17.81052, -97.77547);
+
+  
+  final Map<String, List<RouteOption>> _staticRoutes = {
+    // Rutas para Terminal Fovissste (ID: '1')
+    '1': [
+      RouteOption(
+        id: 'route_1_1',
+        name: 'Fovissste - San Gabriel',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Jerónimo',
+        routeType: 'Ruta Directa',
+        frequency: 'Cada 15 min',
+        duration: '25 min',
+        price: '\$8.00',
+        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_2',
+        name: 'Fovissste - Periférico',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'Periférico',
+        routeType: 'Ruta Expresa',
+        frequency: 'Cada 20 min',
+        duration: '30 min',
+        price: '\$8.00',
+        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_3',
+        name: 'Fovissste - Bicente Gerrero',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Marcos',
+        routeType: 'Ruta Regular',
+        frequency: 'Cada 10 min',
+        duration: '20 min',
+        price: '\$8.00',
+        stops: ['Escuela', 'Iglesia', 'Oficinas'],
+        isCircular: false,
+      ),
+    ],
+
+  '2': [
+      RouteOption(
+        id: 'route_1_1',
+        name: 'Fovissste - San Gabriel',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Jerónimo',
+        routeType: 'Ruta Directa',
+        frequency: 'Cada 15 min',
+        duration: '25 min',
+        price: '\$8.00',
+        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_2',
+        name: 'Fovissste - Periférico',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'Periférico',
+        routeType: 'Ruta Expresa',
+        frequency: 'Cada 20 min',
+        duration: '30 min',
+        price: '\$8.00',
+        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_3',
+        name: 'Fovissste - Bicente Gerrero',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Marcos',
+        routeType: 'Ruta Regular',
+        frequency: 'Cada 10 min',
+        duration: '20 min',
+        price: '\$8.00',
+        stops: ['Escuela', 'Iglesia', 'Oficinas'],
+        isCircular: false,
+      ),
+    ],
+    '3': [
+      RouteOption(
+        id: 'route_1_1',
+        name: 'Fovissste - San Gabriel',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Jerónimo',
+        routeType: 'Ruta Directa',
+        frequency: 'Cada 15 min',
+        duration: '25 min',
+        price: '\$8.00',
+        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_2',
+        name: 'Fovissste - Periférico',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'Periférico',
+        routeType: 'Ruta Expresa',
+        frequency: 'Cada 20 min',
+        duration: '30 min',
+        price: '\$8.00',
+        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_3',
+        name: 'Fovissste - Bicente Gerrero',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Marcos',
+        routeType: 'Ruta Regular',
+        frequency: 'Cada 10 min',
+        duration: '20 min',
+        price: '\$8.00',
+        stops: ['Escuela', 'Iglesia', 'Oficinas'],
+        isCircular: false,
+      ),
+    ],
+    '4': [
+      RouteOption(
+        id: 'route_1_1',
+        name: 'Fovissste - San Gabriel',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Jerónimo',
+        routeType: 'Ruta Directa',
+        frequency: 'Cada 15 min',
+        duration: '25 min',
+        price: '\$8.00',
+        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_2',
+        name: 'Fovissste - Periférico',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'Periférico',
+        routeType: 'Ruta Expresa',
+        frequency: 'Cada 20 min',
+        duration: '30 min',
+        price: '\$8.00',
+        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
+        isCircular: false,
+      ),
+      RouteOption(
+        id: 'route_1_3',
+        name: 'Fovissste - Bicente Gerrero',
+        startPoint: 'Terminal Fovissste',
+        endPoint: 'San Marcos',
+        routeType: 'Ruta Regular',
+        frequency: 'Cada 10 min',
+        duration: '20 min',
+        price: '\$8.00',
+        stops: ['Escuela', 'Iglesia', 'Oficinas'],
+        isCircular: false,
+      ),
+    ]
+  };
 
   @override
   void initState() {
     super.initState();
     _initializeLocation();
+    _getCurrentLocation();
+  
+    // Escuchar cambios en el campo de búsqueda
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeLocation() async {
-    // Primero cargar los puntos
     _loadMapPoints();
-    
-    // Luego obtener la ubicación
     await _getCurrentLocation();
   }
 
   void _loadMapPoints() {
-    // Puntos de ejemplo para transporte en Huajuapan
+    //Terminal Fovissste
     final List<MapPoint> points = [
       MapPoint(
         id: '1',
-        name: 'Terminal Central',
-        position: const LatLng(17.8076, -97.7732),
+        name: 'Combis de Fovissste',
+        position: const LatLng(18.201017, -98.048083),
         isFavorite: true,
         lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Terminal principal de autobuses',
+        description: 'Terminal principal.',
         distance: 0.0,
       ),
       MapPoint(
         id: '2',
-        name: 'Parada Mercado',
-        position: const LatLng(17.8068, -97.7759),
-        isFavorite: false,
-        lastVisited: DateTime.now().subtract(const Duration(hours: 2)),
-        type: 'parada',
-        description: 'Parada frente al mercado central',
+        name: 'Terminal del ORO',
+        position: const LatLng(18.200390, -98.048650),
+        isFavorite: true,
+        lastVisited: DateTime.now(),
+        type: 'terminal',
+        description: 'Terminal principal.',
         distance: 0.0,
       ),
       MapPoint(
         id: '3',
-        name: 'Estación Universidad',
-        position: const LatLng(17.8123, -97.7781),
+        name: 'Terminal del SUR',
+        position: const LatLng(18.200760, -98.048709),
         isFavorite: true,
-        lastVisited: DateTime.now().subtract(const Duration(days: 1)),
+        lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Parada universitaria',
+        description: 'Terminal principal.',
         distance: 0.0,
       ),
       MapPoint(
         id: '4',
-        name: 'Parada Hospital',
-        position: const LatLng(17.8089, -97.7704),
-        isFavorite: false,
-        lastVisited: DateTime.now().subtract(const Duration(hours: 5)),
-        type: 'parada',
-        description: 'Parada cerca del hospital regional',
-        distance: 0.0,
-      ),
-      MapPoint(
-        id: '5',
-        name: 'Terminal Sur',
-        position: const LatLng(17.8034, -97.7768),
-        isFavorite: false,
-        lastVisited: DateTime.now().subtract(const Duration(days: 2)),
+        name: 'Combis Blancas',
+        position: const LatLng(18.201683, -98.046980),
+        isFavorite: true,
+        lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Terminal sur de la ciudad',
+        description: 'Terminal principal.',
         distance: 0.0,
-      ),
-      // Puntos más lejanos para demostración
-      MapPoint(
-        id: '6',
-        name: 'Terminal Norte',
-        position: const LatLng(17.8200, -97.7800),
-        isFavorite: false,
-        lastVisited: DateTime.now().subtract(const Duration(days: 3)),
-        type: 'terminal',
-        description: 'Terminal norte de la ciudad',
-        distance: 0.0,
-      ),
-      MapPoint(
-        id: '7',
-        name: 'Parada Estadio',
-        position: const LatLng(17.8150, -97.7850),
-        isFavorite: false,
-        lastVisited: DateTime.now().subtract(const Duration(days: 1)),
-        type: 'parada',
-        description: 'Parada cerca del estadio',
-        distance: 0.0,
-      ),
+      )
     ];
+
+    // Asignar rutas estáticas al punto
+    for (var point in points) {
+      point.routes = _staticRoutes[point.id] ?? [];
+    }
 
     setState(() {
       _allPoints = points;
-      _filteredPoints = _allPoints;
+      _filteredPoints = _allPoints; // Mostrar todos por defecto
     });
   }
 
@@ -181,21 +326,21 @@ class _MapsPageState extends State<MapsPage> {
       // Calcular distancias para todos los puntos
       _updatePointsDistance(userLocation);
       
-      // Aplicar filtro de cercanía por defecto
-      _applyFilter('nearby');
+      // No aplicar filtro de cercanía por defecto, mantener "todos"
+      // _applyFilter('all'); // Ya está aplicado por defecto
       
       // Mover mapa a la ubicación del usuario
       _mapController.move(userLocation, 15.0);
       
-      _showMessage('Ubicación detectada. Mostrando puntos cercanos', _successColor);
+      _showMessage('Ubicación detectada', _successColor);
 
     } catch (e) {
       _showMessage('Error obteniendo ubicación: $e', _warningColor);
       // Usar ubicación por defecto
       setState(() {
-        _userLocation = _initialCenter;
+        //_userLocation = _initialCenter;
       });
-      _updatePointsDistance(_initialCenter);
+      //_updatePointsDistance(_initialCenter);
     } finally {
       _finishLoading();
     }
@@ -219,15 +364,8 @@ class _MapsPageState extends State<MapsPage> {
       _currentFilter = filterType;
 
       switch (filterType) {
-        case 'nearby':
-          if (_userLocation != null) {
-            _filteredPoints = _allPoints.where((point) => 
-              point.distance <= _searchRadius).toList();
-            // Ordenar por distancia
-            _filteredPoints.sort((a, b) => a.distance.compareTo(b.distance));
-          } else {
-            _filteredPoints = _allPoints;
-          }
+        case 'all': // Filtro "todos" por defecto
+          _filteredPoints = _allPoints;
           break;
         case 'favorites':
           _filteredPoints = _allPoints.where((point) => point.isFavorite).toList();
@@ -337,7 +475,7 @@ class _MapsPageState extends State<MapsPage> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  _applyFilter('nearby');
+                  // Ya no aplicamos filtro de cercanía automáticamente
                   _showMessage('Radio actualizado a ${_searchRadius.toStringAsFixed(1)} km', _primaryColor);
                 },
                 style: ElevatedButton.styleFrom(
@@ -353,27 +491,100 @@ class _MapsPageState extends State<MapsPage> {
     );
   }
 
+  // Función de búsqueda por rutas
+  void _onSearchChanged() {
+    final query = _searchController.text.trim();
+    
+    if (query.isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _showSearchResults = false;
+        _searchResults.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+    });
+
+    // Buscar en todas las rutas de todos los puntos
+    final List<RouteOption> results = [];
+    
+    for (var point in _allPoints) {
+      for (var route in point.routes) {
+        // Buscar en nombre, puntos de inicio/fin, tipo y paradas
+        final searchText = query.toLowerCase();
+        final routeName = route.name.toLowerCase();
+        final startPoint = route.startPoint.toLowerCase();
+        final endPoint = route.endPoint.toLowerCase();
+        final routeType = route.routeType.toLowerCase();
+        
+        if (routeName.contains(searchText) ||
+            startPoint.contains(searchText) ||
+            endPoint.contains(searchText) ||
+            routeType.contains(searchText)) {
+          results.add(route);
+        } else {
+          // Buscar en las paradas
+          for (var stop in route.stops) {
+            if (stop.toLowerCase().contains(searchText)) {
+              results.add(route);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    setState(() {
+      _searchResults = results;
+      _showSearchResults = true;
+      _isSearching = false;
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchFocusNode.unfocus();
+    setState(() {
+      _showSearchResults = false;
+      _searchResults.clear();
+    });
+  }
+
   void _showPointDetails(MapPoint point) {
+    // Mostrar un drawer lateral con las rutas
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header del punto
-                Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header del drawer
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: Row(
                   children: [
                     Container(
                       width: 50,
@@ -419,15 +630,20 @@ class _MapsPageState extends State<MapsPage> {
                         color: point.isFavorite ? _warningColor : _textSecondary,
                         size: 28,
                       ),
-                      onPressed: () => _toggleFavorite(point.id),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _toggleFavorite(point.id);
+                      },
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                
-                // Distancia (si tenemos ubicación)
-                if (_userLocation != null) ...[
-                  Row(
+              ),
+              
+              // Distancia (si tenemos ubicación)
+              if (_userLocation != null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Row(
                     children: [
                       Icon(Icons.place, color: _textSecondary, size: 16),
                       const SizedBox(width: 8),
@@ -441,39 +657,86 @@ class _MapsPageState extends State<MapsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                ],
-                
-                // Descripción
-                if (point.description.isNotEmpty) ...[
-                  Text(
+                ),
+              ],
+              
+              // Descripción
+              if (point.description.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Text(
                     point.description,
                     style: TextStyle(
                       fontSize: 14,
                       color: _textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                ],
-                
-                // Última visita
-                Row(
+                ),
+              ],
+              
+              // Separador
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(color: _textSecondary.withOpacity(0.3)),
+              ),
+              
+              // Título de rutas
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
                   children: [
-                    Icon(Icons.access_time, color: _textSecondary, size: 16),
-                    const SizedBox(width: 8),
+                    Icon(Icons.route, color: _primaryColor, size: 24),
+                    const SizedBox(width: 12),
                     Text(
-                      'Última visita: ${_formatDate(point.lastVisited)}',
+                      'Rutas disponibles',
                       style: TextStyle(
-                        fontSize: 14,
-                        color: _textSecondary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${point.routes.length}',
+                        style: TextStyle(
+                          color: _primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                
-                // Botones de acción
-                Row(
+              ),
+              
+              // Lista de rutas
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  itemCount: point.routes.length,
+                  itemBuilder: (context, index) {
+                    final route = point.routes[index];
+                    return _buildRouteCard(route, index);
+                  },
+                ),
+              ),
+              
+              // Botones de acción
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: _textSecondary.withOpacity(0.1)),
+                  ),
+                ),
+                child: Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
@@ -497,7 +760,7 @@ class _MapsPageState extends State<MapsPage> {
                         onPressed: () {
                           _mapController.move(point.position, 16.0);
                           Navigator.pop(context);
-                          _showMessage('Navegando a ${point.name}', _primaryColor);
+                          _showMessage('Centrando en ${point.name}', _primaryColor);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _primaryColor,
@@ -507,17 +770,393 @@ class _MapsPageState extends State<MapsPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Ir aquí'),
+                        child: const Text('Ver en mapa'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRouteCard(RouteOption route, int index) {
+    final colors = [
+      _primaryColor,
+      _secondaryColor,
+      _accentColor,
+    ];
+    final color = colors[index % colors.length];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showRouteDetails(route),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header de la ruta
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        route.isCircular ? Icons.refresh : Icons.arrow_forward,
+                        color: color,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            route.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            route.routeType,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (index == 0) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _successColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Popular',
+                          style: TextStyle(
+                            color: _successColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Información de la ruta
+                Row(
+                  children: [
+                    _buildRouteInfo(Icons.access_time, route.duration, color),
+                    const SizedBox(width: 16),
+                    _buildRouteInfo(Icons.timelapse, route.frequency, color),
+                    const SizedBox(width: 16),
+                    _buildRouteInfo(Icons.attach_money, route.price, color),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Paradas
+                if (route.stops.isNotEmpty) ...[
+                  Text(
+                    'Paradas principales:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: route.stops.take(3).map((stop) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          stop,
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 11,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+                
+                // Botón para ver detalles
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => _showRouteDetails(route),
+                    style: TextButton.styleFrom(
+                      foregroundColor: color,
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(50, 30),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Ver detalles',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward, size: 14),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRouteInfo(IconData icon, String text, Color color) {
+    return Expanded(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 11,
+                color: _textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRouteDetails(RouteOption route) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header de la ruta
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: _primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      route.isCircular ? Icons.refresh : Icons.route,
+                      color: _primaryColor,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          route.name,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: _textPrimary,
+                          ),
+                        ),
+                        Text(
+                          route.routeType,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Información detallada
+              Column(
+                children: [
+                  _buildDetailRow('Origen:', route.startPoint, Icons.place),
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Destino:', route.endPoint, Icons.flag),
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Duración:', route.duration, Icons.access_time),
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Frecuencia:', route.frequency, Icons.timelapse),
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Precio:', route.price, Icons.attach_money),
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Tipo:', route.routeType, Icons.directions_bus),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Paradas
+              Text(
+                'Paradas principales:',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: route.stops.map((stop) {
+                  return Chip(
+                    label: Text(stop),
+                    backgroundColor: _primaryColor.withOpacity(0.1),
+                    labelStyle: TextStyle(color: _primaryColor),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 32),
+              
+              // Botones de acción
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _textSecondary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: _textSecondary.withOpacity(0.3)),
+                      ),
+                      child: const Text('Cerrar'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showMessage('Navegando por la ruta ${route.name}', _primaryColor);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Iniciar ruta'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: _primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 18, color: _primaryColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -546,6 +1185,313 @@ class _MapsPageState extends State<MapsPage> {
     }
   }
 
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white,
+      child: Column(
+        children: [
+          Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: _cardColor,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: _showSearchResults ? _primaryColor : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 16),
+                Icon(
+                  Icons.search,
+                  color: _showSearchResults ? _primaryColor : _textSecondary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar rutas...',
+                      hintStyle: TextStyle(color: _textSecondary),
+                      border: InputBorder.none,
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.close,
+                                color: _textSecondary,
+                                size: 18,
+                              ),
+                              onPressed: _clearSearch,
+                            )
+                          : null,
+                    ),
+                    style: TextStyle(
+                      color: _textPrimary,
+                      fontSize: 16,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _showSearchResults = _searchController.text.isNotEmpty;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+          ),
+          // Indicador de búsqueda
+          if (_isSearching)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Buscando rutas...',
+                    style: TextStyle(
+                      color: _textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (!_showSearchResults || _searchResults.isEmpty) {
+      return Container();
+    }
+
+    return Container(
+      height: 300,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header de resultados
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _primaryColor.withOpacity(0.05),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, color: _primaryColor, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Resultados de búsqueda',
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_searchResults.length}',
+                    style: TextStyle(
+                      color: _primaryColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Lista de resultados
+          Expanded(
+            child: _searchResults.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          color: _textSecondary,
+                          size: 48,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No se encontraron rutas',
+                          style: TextStyle(
+                            color: _textSecondary,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      final route = _searchResults[index];
+                      return _buildSearchResultItem(route);
+                    },
+                  ),
+          ),
+          
+          // Botón para cerrar
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: _textSecondary.withOpacity(0.1)),
+              ),
+            ),
+            child: OutlinedButton(
+              onPressed: _clearSearch,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _textSecondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(color: _textSecondary.withOpacity(0.3)),
+              ),
+              child: const Text('Cerrar búsqueda'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResultItem(RouteOption route) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            _showRouteDetails(route);
+            _clearSearch();
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: _primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.route,
+                    color: _primaryColor,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        route.name,
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${route.startPoint} → ${route.endPoint}',
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.access_time, size: 12, color: _textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            route.duration,
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(Icons.attach_money, size: 12, color: _textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            route.price,
+                            style: TextStyle(
+                              color: _textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: _textSecondary,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -555,16 +1501,6 @@ class _MapsPageState extends State<MapsPage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Botón de radio de búsqueda
-          if (_userLocation != null) ...[
-            FloatingActionButton.small(
-              onPressed: _showRadiusSettings,
-              backgroundColor: _accentColor,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.tune),
-            ),
-            const SizedBox(height: 8),
-          ],
           // Botón de ubicación
           FloatingActionButton(
             onPressed: _goToCurrentLocation,
@@ -602,18 +1538,19 @@ class _MapsPageState extends State<MapsPage> {
               fontSize: 18,
             ),
           ),
-          if (_userLocation != null) ...[
-            Text(
-              'Radio: ${_searchRadius.toStringAsFixed(1)} km',
-              style: TextStyle(
-                color: _textSecondary,
-                fontSize: 12,
-              ),
-            ),
-          ],
         ],
       ),
       actions: [
+        // Botón de búsqueda
+        IconButton(
+          icon: Icon(
+            Icons.search,
+            color: _textPrimary,
+          ),
+          onPressed: () {
+            _searchFocusNode.requestFocus();
+          },
+        ),
         // Menú de perfil
         Container(
           margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
@@ -785,64 +1722,76 @@ class _MapsPageState extends State<MapsPage> {
   Widget _buildMapContent() {
     return Column(
       children: [
+        // Barra de búsqueda
+        _buildSearchBar(),
+        
+        // Resultados de búsqueda (si hay)
+        if (_showSearchResults && _searchResults.isNotEmpty)
+          _buildSearchResults(),
+        
         // Barra de filtros
-        _buildFilterBar(),
+        if (!_showSearchResults)
+          _buildFilterBar(),
+        
         // Mapa
         Expanded(
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              center: _userLocation ?? _initialCenter,
-              zoom: 14.0,
-              maxZoom: 18.0,
-              minZoom: 10.0,
-            ),
+          child: Stack(
             children: [
-              // Capa de tiles (mapa)
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.transporteslocales.app',
-              ),
-              // Marcador de ubicación del usuario
-              if (_userLocation != null) ...[
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _userLocation!,
-                      width: 40.0,
-                      height: 40.0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: _successColor.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+              FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  zoom: 14.0,
+                  maxZoom: 18.0,
+                  minZoom: 10.0,
+                ),
+                children: [
+                  // Capa de tiles (mapa)
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.transporteslocales.app',
+                  ),
+                  // Marcador de ubicación del usuario
+                  if (_userLocation != null) ...[
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _userLocation!,
+                          width: 40.0,
+                          height: 40.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _successColor.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
+                            child: const Icon(Icons.person_pin_circle, color: Colors.white, size: 24),
+                          ),
                         ),
-                        child: const Icon(Icons.person_pin_circle, color: Colors.white, size: 24),
-                      ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-              // Capa de marcadores de puntos
-              MarkerLayer(
-                markers: _filteredPoints.map((point) {
-                  return Marker(
-                    point: point.position,
-                    width: 60.0,
-                    height: 60.0,
-                    child: GestureDetector(
-                      onTap: () => _showPointDetails(point),
-                      child: _buildCustomMarker(point),
-                    ),
-                  );
-                }).toList(),
+                  // Capa de marcadores de puntos
+                  MarkerLayer(
+                    markers: _filteredPoints.map((point) {
+                      return Marker(
+                        point: point.position,
+                        width: 60.0,
+                        height: 60.0,
+                        child: GestureDetector(
+                          onTap: () => _showPointDetails(point),
+                          child: _buildCustomMarker(point),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -871,8 +1820,7 @@ class _MapsPageState extends State<MapsPage> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _buildFilterChip('Cercanos', 'nearby', Icons.near_me),
-                _buildFilterChip('Todos', 'all', Icons.map),
+                _buildFilterChip('Todos', 'all', Icons.map), // Primer filtro ahora es "Todos"
                 _buildFilterChip('Favoritos', 'favorites', Icons.favorite),
                 _buildFilterChip('Recientes', 'recent', Icons.access_time),
                 _buildFilterChip('Terminales', 'terminals', Icons.directions_bus),
@@ -972,7 +1920,7 @@ class _MapsPageState extends State<MapsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'La app necesita acceso a tu ubicación\npara mostrar puntos cercanos',
+            'La app necesita acceso a tu ubicación\npara mostrar tu posición en el mapa',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -1115,6 +2063,7 @@ class MapPoint {
   final String type; // 'terminal' o 'parada'
   final String description;
   double distance;
+  List<RouteOption> routes = [];
 
   MapPoint({
     required this.id,
@@ -1125,5 +2074,31 @@ class MapPoint {
     required this.type,
     required this.description,
     required this.distance,
+  });
+}
+
+class RouteOption {
+  final String id;
+  final String name;
+  final String startPoint;
+  final String endPoint;
+  final String routeType;
+  final String frequency;
+  final String duration;
+  final String price;
+  final List<String> stops;
+  final bool isCircular;
+
+  RouteOption({
+    required this.id,
+    required this.name,
+    required this.startPoint,
+    required this.endPoint,
+    required this.routeType,
+    required this.frequency,
+    required this.duration,
+    required this.price,
+    required this.stops,
+    required this.isCircular,
   });
 }
