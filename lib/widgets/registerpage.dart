@@ -233,7 +233,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   SizedBox(height: 50),
                   
                   // Formulario centrado
-                  Container(
+                  SizedBox(
                     width: 500,
                     child: Column(
                       children: [

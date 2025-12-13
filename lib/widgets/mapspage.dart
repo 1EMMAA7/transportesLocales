@@ -35,19 +35,18 @@ class _MapsPageState extends State<MapsPage> {
   bool _isLoading = true;
   bool _locationLoading = false;
   LatLng? _userLocation;
-  double _searchRadius = 2.0; // Radio en kilómetros
+  final double _searchRadius = 2.0; // Radio en kilómetros
   final TextEditingController _searchController = TextEditingController();
   List<RouteOption> _searchResults = [];
   bool _isSearching = false;
   bool _showSearchResults = false;
-  FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
 
   // Coordenadas de Huajuapan de León (fallback)
   //final LatLng _initialCenter = const LatLng(17.81052, -97.77547);
 
-  
   final Map<String, List<RouteOption>> _staticRoutes = {
-    // Rutas para Terminal Fovissste (ID: '1')
+    // Terminal Fovissste
     '1': [
       RouteOption(
         id: 'route_1_1',
@@ -60,6 +59,7 @@ class _MapsPageState extends State<MapsPage> {
         price: '\$8.00',
         stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
         isCircular: false,
+        horarios: ['6:00 AM', '7:30 AM', '9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM', '6:00 PM'],
       ),
       RouteOption(
         id: 'route_1_2',
@@ -72,133 +72,88 @@ class _MapsPageState extends State<MapsPage> {
         price: '\$8.00',
         stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
         isCircular: false,
-      ),
-      RouteOption(
-        id: 'route_1_3',
-        name: 'Fovissste - Bicente Gerrero',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Marcos',
-        routeType: 'Ruta Regular',
-        frequency: 'Cada 10 min',
-        duration: '20 min',
-        price: '\$8.00',
-        stops: ['Escuela', 'Iglesia', 'Oficinas'],
-        isCircular: false,
+        horarios: ['6:30 AM', '8:00 AM', '10:00 AM', '12:00 PM', '3:00 PM', '5:00 PM', '7:00 PM'],
       ),
     ],
 
-  '2': [
+    // Terminal del ORO
+    '2': [
       RouteOption(
-        id: 'route_1_1',
-        name: 'Fovissste - San Gabriel',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Jerónimo',
-        routeType: 'Ruta Directa',
-        frequency: 'Cada 15 min',
-        duration: '25 min',
-        price: '\$8.00',
-        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
+        id: 'route_2_1',
+        name: 'Acatlán - Puebla',
+        startPoint: 'Terminal ORO',
+        endPoint: 'Puebla',
+        routeType: 'Ruta Foránea',
+        frequency: 'Horarios fijos',
+        duration: '5 horas',
+        price: '\$150.00',
+        stops: ['Acatlán Centro', 'Carretera Federal', 'Puebla CAPU'],
         isCircular: false,
+        horarios: ['1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '9:00 PM'],
       ),
       RouteOption(
-        id: 'route_1_2',
-        name: 'Fovissste - Periférico',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'Periférico',
-        routeType: 'Ruta Expresa',
-        frequency: 'Cada 20 min',
-        duration: '30 min',
-        price: '\$8.00',
-        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
+        id: 'route_2_2',
+        name: 'Acatlán - Huajuapan',
+        startPoint: 'Terminal ORO',
+        endPoint: 'Huajuapan',
+        routeType: 'Ruta Regional',
+        frequency: 'Horarios fijos',
+        duration: '2 horas',
+        price: '\$60.00',
+        stops: ['Acatlán Centro', 'Chila', 'Petlalcingo', 'Huajuapan'],
         isCircular: false,
-      ),
-      RouteOption(
-        id: 'route_1_3',
-        name: 'Fovissste - Bicente Gerrero',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Marcos',
-        routeType: 'Ruta Regular',
-        frequency: 'Cada 10 min',
-        duration: '20 min',
-        price: '\$8.00',
-        stops: ['Escuela', 'Iglesia', 'Oficinas'],
-        isCircular: false,
+        horarios: ['8:00 AM', '9:00 AM', '10:00 AM', '4:00 PM', '5:00 PM', '6:00 PM'],
       ),
     ],
+
+    // Terminal del SUR
     '3': [
       RouteOption(
-        id: 'route_1_1',
-        name: 'Fovissste - San Gabriel',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Jerónimo',
-        routeType: 'Ruta Directa',
-        frequency: 'Cada 15 min',
-        duration: '25 min',
-        price: '\$8.00',
-        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
+        id: 'route_3_1',
+        name: 'Huajuapan - Oaxaca',
+        startPoint: 'Terminal SUR',
+        endPoint: 'Oaxaca',
+        routeType: 'Ruta Foránea',
+        frequency: 'Horarios fijos',
+        duration: '3 horas',
+        price: '\$120.00',
+        stops: ['Huajuapan', 'Nochixtlán', 'Huitzo', 'Oaxaca'],
         isCircular: false,
+        horarios: ['7:00 AM', '10:00 AM', '1:00 PM', '4:00 PM', '7:00 PM'],
       ),
       RouteOption(
-        id: 'route_1_2',
-        name: 'Fovissste - Periférico',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'Periférico',
-        routeType: 'Ruta Expresa',
-        frequency: 'Cada 20 min',
-        duration: '30 min',
-        price: '\$8.00',
-        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
+        id: 'route_3_2',
+        name: 'Huajuapan - Tlaxiaco',
+        startPoint: 'Terminal SUR',
+        endPoint: 'Tlaxiaco',
+        routeType: 'Ruta Regional',
+        frequency: 'Cada hora',
+        duration: '1.5 horas',
+        price: '\$50.00',
+        stops: ['Huajuapan', 'San Juan Mixtepec', 'Chalcatongo', 'Tlaxiaco'],
         isCircular: false,
-      ),
-      RouteOption(
-        id: 'route_1_3',
-        name: 'Fovissste - Bicente Gerrero',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Marcos',
-        routeType: 'Ruta Regular',
-        frequency: 'Cada 10 min',
-        duration: '20 min',
-        price: '\$8.00',
-        stops: ['Escuela', 'Iglesia', 'Oficinas'],
-        isCircular: false,
+        horarios: ['6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', 
+                  '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM',
+                  '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM'],
       ),
     ],
+
+    // Combis Blancas
     '4': [
       RouteOption(
-        id: 'route_1_1',
-        name: 'Fovissste - San Gabriel',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Jerónimo',
-        routeType: 'Ruta Directa',
-        frequency: 'Cada 15 min',
-        duration: '25 min',
-        price: '\$8.00',
-        stops: ['Tecnologico', 'CFE', 'CBTA', 'Fovissste'],
-        isCircular: false,
-      ),
-      RouteOption(
-        id: 'route_1_2',
-        name: 'Fovissste - Periférico',
-        startPoint: 'Terminal Fovissste',
+        id: 'route_4_1',
+        name: 'Centro - Periférico',
+        startPoint: 'Combis Blancas',
         endPoint: 'Periférico',
-        routeType: 'Ruta Expresa',
-        frequency: 'Cada 20 min',
-        duration: '30 min',
-        price: '\$8.00',
-        stops: ['El tejuan', 'Caseta', 'El boqueron','Fovissste'],
-        isCircular: false,
-      ),
-      RouteOption(
-        id: 'route_1_3',
-        name: 'Fovissste - Bicente Gerrero',
-        startPoint: 'Terminal Fovissste',
-        endPoint: 'San Marcos',
-        routeType: 'Ruta Regular',
+        routeType: 'Ruta Urbana',
         frequency: 'Cada 10 min',
         duration: '20 min',
         price: '\$8.00',
-        stops: ['Escuela', 'Iglesia', 'Oficinas'],
+        stops: ['Zócalo', 'Mercado', 'Hospital', 'Periférico'],
         isCircular: false,
+        horarios: ['5:30 AM', '6:30 AM', '7:30 AM', '8:30 AM', '9:30 AM', 
+                  '10:30 AM', '11:30 AM', '12:30 PM', '1:30 PM', '2:30 PM',
+                  '3:30 PM', '4:30 PM', '5:30 PM', '6:30 PM', '7:30 PM'],
       ),
     ]
   };
@@ -207,11 +162,12 @@ class _MapsPageState extends State<MapsPage> {
   void initState() {
     super.initState();
     _initializeLocation();
-    _getCurrentLocation();
+    
   
     // Escuchar cambios en el campo de búsqueda
     _searchController.addListener(_onSearchChanged);
   }
+
 
   @override
   void dispose() {
@@ -226,7 +182,6 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _loadMapPoints() {
-    //Terminal Fovissste
     final List<MapPoint> points = [
       MapPoint(
         id: '1',
@@ -235,7 +190,7 @@ class _MapsPageState extends State<MapsPage> {
         isFavorite: true,
         lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Terminal principal.',
+        description: 'Terminal principal de transporte urbano.',
         distance: 0.0,
       ),
       MapPoint(
@@ -245,7 +200,7 @@ class _MapsPageState extends State<MapsPage> {
         isFavorite: true,
         lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Terminal principal.',
+        description: 'Terminal de transporte foráneo a Puebla y Huajuapan.',
         distance: 0.0,
       ),
       MapPoint(
@@ -255,7 +210,7 @@ class _MapsPageState extends State<MapsPage> {
         isFavorite: true,
         lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Terminal principal.',
+        description: 'Terminal de transporte a Oaxaca y Tlaxiaco.',
         distance: 0.0,
       ),
       MapPoint(
@@ -265,7 +220,7 @@ class _MapsPageState extends State<MapsPage> {
         isFavorite: true,
         lastVisited: DateTime.now(),
         type: 'terminal',
-        description: 'Terminal principal.',
+        description: 'Transporte urbano local.',
         distance: 0.0,
       )
     ];
@@ -277,74 +232,61 @@ class _MapsPageState extends State<MapsPage> {
 
     setState(() {
       _allPoints = points;
-      _filteredPoints = _allPoints; // Mostrar todos por defecto
+      _filteredPoints = _allPoints;
     });
   }
 
-  // Función para calcular distancia entre dos coordenadas
   double _calculateDistance(LatLng start, LatLng end) {
     const Distance distance = Distance();
-    return distance(start, end) / 1000; // Convertir a kilómetros
+    return distance(start, end) / 1000;
   }
 
-  // Función para obtener ubicación actual
   Future<void> _getCurrentLocation() async {
-    setState(() {
-      _locationLoading = true;
-    });
+  setState(() {
+    _locationLoading = true;
+  });
 
-    try {
-      // Verificar permisos de ubicación
-      LocationPermission permission = await Geolocator.checkPermission();
-      
+  try {
+    LocationPermission permission = await Geolocator.checkPermission();
+    
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          _showMessage('Los permisos de ubicación fueron denegados', _warningColor);
-          _finishLoading();
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        _showMessage('Los permisos de ubicación están denegados permanentemente. Active los permisos en configuración.', _warningColor);
+        _showMessage('Los permisos de ubicación fueron denegados', _warningColor);
         _finishLoading();
         return;
       }
-
-      // Obtener ubicación actual
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      );
-
-      final userLocation = LatLng(position.latitude, position.longitude);
-      
-      setState(() {
-        _userLocation = userLocation;
-      });
-
-      // Calcular distancias para todos los puntos
-      _updatePointsDistance(userLocation);
-      
-      // No aplicar filtro de cercanía por defecto, mantener "todos"
-      // _applyFilter('all'); // Ya está aplicado por defecto
-      
-      // Mover mapa a la ubicación del usuario
-      _mapController.move(userLocation, 15.0);
-      
-      _showMessage('Ubicación detectada', _successColor);
-
-    } catch (e) {
-      _showMessage('Error obteniendo ubicación: $e', _warningColor);
-      // Usar ubicación por defecto
-      setState(() {
-        //_userLocation = _initialCenter;
-      });
-      //_updatePointsDistance(_initialCenter);
-    } finally {
-      _finishLoading();
     }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showMessage('Los permisos de ubicación están denegados permanentemente.', _warningColor);
+      _finishLoading();
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best,
+    );
+
+    final userLocation = LatLng(position.latitude, position.longitude);
+    
+    setState(() {
+      _userLocation = userLocation;
+    });
+
+    _updatePointsDistance(userLocation);
+    
+    // SOLUCIÓN: Llamar move() directamente - flutter_map maneja el estado interno
+    _mapController.move(userLocation, 15.0);
+    
+    _showMessage('Ubicación detectada', _successColor);
+
+  } catch (e) {
+    _showMessage('Error obteniendo ubicación', _warningColor);
+  } finally {
+    _finishLoading();
   }
+}
 
   void _updatePointsDistance(LatLng userLocation) {
     for (var point in _allPoints) {
@@ -364,7 +306,7 @@ class _MapsPageState extends State<MapsPage> {
       _currentFilter = filterType;
 
       switch (filterType) {
-        case 'all': // Filtro "todos" por defecto
+        case 'all':
           _filteredPoints = _allPoints;
           break;
         case 'favorites':
@@ -411,87 +353,6 @@ class _MapsPageState extends State<MapsPage> {
     }
   }
 
-  void _showRadiusSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Text(
-              'Radio de búsqueda',
-              style: TextStyle(
-                color: _textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Mostrar puntos dentro de:',
-                  style: TextStyle(color: _textSecondary),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '${_searchRadius.toStringAsFixed(1)} km',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: _primaryColor,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Slider(
-                  value: _searchRadius,
-                  min: 0.5,
-                  max: 10.0,
-                  divisions: 19,
-                  label: '${_searchRadius.toStringAsFixed(1)} km',
-                  onChanged: (value) {
-                    setState(() {
-                      _searchRadius = value;
-                    });
-                  },
-                  activeColor: _primaryColor,
-                  inactiveColor: _cardColor,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('0.5 km', style: TextStyle(color: _textSecondary)),
-                    Text('10 km', style: TextStyle(color: _textSecondary)),
-                  ],
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancelar', style: TextStyle(color: _textSecondary)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Ya no aplicamos filtro de cercanía automáticamente
-                  _showMessage('Radio actualizado a ${_searchRadius.toStringAsFixed(1)} km', _primaryColor);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Aplicar'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  // Función de búsqueda por rutas
   void _onSearchChanged() {
     final query = _searchController.text.trim();
     
@@ -508,12 +369,10 @@ class _MapsPageState extends State<MapsPage> {
       _isSearching = true;
     });
 
-    // Buscar en todas las rutas de todos los puntos
     final List<RouteOption> results = [];
     
     for (var point in _allPoints) {
       for (var route in point.routes) {
-        // Buscar en nombre, puntos de inicio/fin, tipo y paradas
         final searchText = query.toLowerCase();
         final routeName = route.name.toLowerCase();
         final startPoint = route.startPoint.toLowerCase();
@@ -526,7 +385,6 @@ class _MapsPageState extends State<MapsPage> {
             routeType.contains(searchText)) {
           results.add(route);
         } else {
-          // Buscar en las paradas
           for (var stop in route.stops) {
             if (stop.toLowerCase().contains(searchText)) {
               results.add(route);
@@ -554,7 +412,6 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _showPointDetails(MapPoint point) {
-    // Mostrar un drawer lateral con las rutas
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -727,7 +584,7 @@ class _MapsPageState extends State<MapsPage> {
                 ),
               ),
               
-              // Botones de acción
+              // Botón de cerrar solamente
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -736,44 +593,19 @@ class _MapsPageState extends State<MapsPage> {
                     top: BorderSide(color: _textSecondary.withOpacity(0.1)),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _textSecondary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(color: _textSecondary.withOpacity(0.3)),
-                        ),
-                        child: const Text('Cerrar'),
-                      ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _mapController.move(point.position, 16.0);
-                          Navigator.pop(context);
-                          _showMessage('Centrando en ${point.name}', _primaryColor);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Ver en mapa'),
-                      ),
-                    ),
-                  ],
+                  ),
+                  child: const Text('Cerrar'),
                 ),
               ),
             ],
@@ -849,23 +681,6 @@ class _MapsPageState extends State<MapsPage> {
                         ],
                       ),
                     ),
-                    if (index == 0) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _successColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Popular',
-                          style: TextStyle(
-                            color: _successColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -881,6 +696,41 @@ class _MapsPageState extends State<MapsPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                
+                // Horarios (si existen)
+                if (route.horarios != null && route.horarios!.isNotEmpty) ...[
+                  Text(
+                    'Horarios disponibles:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: route.horarios!.map((horario) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _successColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          horario,
+                          style: TextStyle(
+                            color: _successColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 
                 // Paradas
                 if (route.stops.isNotEmpty) ...[
@@ -914,34 +764,6 @@ class _MapsPageState extends State<MapsPage> {
                     }).toList(),
                   ),
                 ],
-                
-                // Botón para ver detalles
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => _showRouteDetails(route),
-                    style: TextButton.styleFrom(
-                      foregroundColor: color,
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(50, 30),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Ver detalles',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward, size: 14),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -1053,6 +875,34 @@ class _MapsPageState extends State<MapsPage> {
               ),
               const SizedBox(height: 24),
               
+              // Horarios (si existen)
+              if (route.horarios != null && route.horarios!.isNotEmpty) ...[
+                Text(
+                  'Horarios disponibles:',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: route.horarios!.map((horario) {
+                    return Chip(
+                      label: Text(horario),
+                      backgroundColor: _successColor.withOpacity(0.1),
+                      labelStyle: TextStyle(
+                        color: _successColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+              ],
+              
               // Paradas
               Text(
                 'Paradas principales:',
@@ -1076,42 +926,18 @@ class _MapsPageState extends State<MapsPage> {
               ),
               const SizedBox(height: 32),
               
-              // Botones de acción
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _textSecondary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: BorderSide(color: _textSecondary.withOpacity(0.3)),
-                      ),
-                      child: const Text('Cerrar'),
-                    ),
+              // Botón de cerrar solamente
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _showMessage('Navegando por la ruta ${route.name}', _primaryColor);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Iniciar ruta'),
-                    ),
-                  ),
-                ],
+                ),
+                child: const Text('Cerrar'),
               ),
             ],
           ),
@@ -1170,19 +996,6 @@ class _MapsPageState extends State<MapsPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-    
-    if (difference.inMinutes < 60) {
-      return 'Hace ${difference.inMinutes} min';
-    } else if (difference.inHours < 24) {
-      return 'Hace ${difference.inHours} h';
-    } else {
-      return 'Hace ${difference.inDays} días';
-    }
   }
 
   Widget _buildSearchBar() {
@@ -1244,7 +1057,6 @@ class _MapsPageState extends State<MapsPage> {
               ],
             ),
           ),
-          // Indicador de búsqueda
           if (_isSearching)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -1296,7 +1108,6 @@ class _MapsPageState extends State<MapsPage> {
       ),
       child: Column(
         children: [
-          // Header de resultados
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -1338,7 +1149,6 @@ class _MapsPageState extends State<MapsPage> {
             ),
           ),
           
-          // Lista de resultados
           Expanded(
             child: _searchResults.isEmpty
                 ? Center(
@@ -1371,7 +1181,6 @@ class _MapsPageState extends State<MapsPage> {
                   ),
           ),
           
-          // Botón para cerrar
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1501,7 +1310,6 @@ class _MapsPageState extends State<MapsPage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Botón de ubicación
           FloatingActionButton(
             onPressed: _goToCurrentLocation,
             backgroundColor: _primaryColor,
@@ -1541,7 +1349,6 @@ class _MapsPageState extends State<MapsPage> {
         ],
       ),
       actions: [
-        // Botón de búsqueda
         IconButton(
           icon: Icon(
             Icons.search,
@@ -1551,7 +1358,6 @@ class _MapsPageState extends State<MapsPage> {
             _searchFocusNode.requestFocus();
           },
         ),
-        // Menú de perfil
         Container(
           margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
           child: PopupMenuButton<String>(
@@ -1583,7 +1389,6 @@ class _MapsPageState extends State<MapsPage> {
               _handleMenuSelection(context, value);
             },
             itemBuilder: (BuildContext context) => [
-              // Header del menú con información del usuario
               PopupMenuItem<String>(
                 enabled: false,
                 height: 80,
@@ -1592,7 +1397,6 @@ class _MapsPageState extends State<MapsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Información del usuario
                       Row(
                         children: [
                           Container(
@@ -1644,7 +1448,6 @@ class _MapsPageState extends State<MapsPage> {
                 ),
               ),
               
-              // Opción Mi Perfil
               PopupMenuItem<String>(
                 value: 'profile',
                 height: 45,
@@ -1675,10 +1478,8 @@ class _MapsPageState extends State<MapsPage> {
                 ),
               ),
               
-              // Separador
               const PopupMenuDivider(height: 1),
               
-              // Opción Cerrar Sesión
               PopupMenuItem<String>(
                 value: 'logout',
                 height: 45,
@@ -1722,18 +1523,14 @@ class _MapsPageState extends State<MapsPage> {
   Widget _buildMapContent() {
     return Column(
       children: [
-        // Barra de búsqueda
         _buildSearchBar(),
         
-        // Resultados de búsqueda (si hay)
         if (_showSearchResults && _searchResults.isNotEmpty)
           _buildSearchResults(),
         
-        // Barra de filtros
         if (!_showSearchResults)
           _buildFilterBar(),
         
-        // Mapa
         Expanded(
           child: Stack(
             children: [
@@ -1745,12 +1542,10 @@ class _MapsPageState extends State<MapsPage> {
                   minZoom: 10.0,
                 ),
                 children: [
-                  // Capa de tiles (mapa)
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.transporteslocales.app',
                   ),
-                  // Marcador de ubicación del usuario
                   if (_userLocation != null) ...[
                     MarkerLayer(
                       markers: [
@@ -1777,7 +1572,6 @@ class _MapsPageState extends State<MapsPage> {
                       ],
                     ),
                   ],
-                  // Capa de marcadores de puntos
                   MarkerLayer(
                     markers: _filteredPoints.map((point) {
                       return Marker(
@@ -1820,7 +1614,7 @@ class _MapsPageState extends State<MapsPage> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _buildFilterChip('Todos', 'all', Icons.map), // Primer filtro ahora es "Todos"
+                _buildFilterChip('Todos', 'all', Icons.map),
                 _buildFilterChip('Favoritos', 'favorites', Icons.favorite),
                 _buildFilterChip('Recientes', 'recent', Icons.access_time),
                 _buildFilterChip('Terminales', 'terminals', Icons.directions_bus),
@@ -2060,7 +1854,7 @@ class MapPoint {
   final LatLng position;
   bool isFavorite;
   final DateTime lastVisited;
-  final String type; // 'terminal' o 'parada'
+  final String type;
   final String description;
   double distance;
   List<RouteOption> routes = [];
@@ -2088,6 +1882,7 @@ class RouteOption {
   final String price;
   final List<String> stops;
   final bool isCircular;
+  final List<String>? horarios; // Nuevo campo para horarios específicos
 
   RouteOption({
     required this.id,
@@ -2100,5 +1895,6 @@ class RouteOption {
     required this.price,
     required this.stops,
     required this.isCircular,
+    this.horarios, // Ahora es opcional
   });
 }
